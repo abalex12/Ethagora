@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}Browse Listings - Ethagora{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Mobile-First Header with Search -->
+    <div class="sticky top-0 z-50 bg-white shadow-sm">
+        <div class="px-4 py-3">
+            <!-- Search Bar -->
+            <form id="filter-form" class="space-y-3">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input 
+                        type="text" 
+                        name="search" 
+                        value="{{ form.search.value|default:'' }}"
+                        placeholder="Search products..." 
+                        class="w-full pl-10 pr-4 py-3 bg-gray-50 border-0 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                    >
+                    <button type="button" id="filter-toggle" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                        </svg> 
+                    </button>
+                </div>
+                
+                <!-- Collapsible Filters -->
+                <div id="filters-section" class="hidden space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Condition -->
+                        <select name="condition" class="px-3 py-2 bg-gray-50 border-0 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="">Condition</option>
+                            <option value="new" {% if form.condition.value == 'new' %}selected{% endif %}>New</option>
+                            <option value="used" {% if form.condition.value == 'used' %}selected{% endif %}>Used</option>
+                        </select>
+                        
+                        <!-- Sort -->
+                        <select name="sort_by" class="px-3 py-2 bg-gray-50 border-0 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="newest" {% if form.sort_by.value == 'newest' or not form.sort_by.value %}selected{% endif %}>Newest</option>
+                            <option value="oldest" {% if form.sort_by.value == 'oldest' %}selected{% endif %}>Oldest</option>
+                            <option value="price_low" {% if form.sort_by.value == 'price_low' %}selected{% endif %}>Price ↑</option>
+                            <option value="price_high" {% if form.sort_by.value == 'price_high' %}selected{% endif %}>Price ↓</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Price Range -->
+                    <div class="flex gap-3">
+                        <input 
+                            type="number" 
+                            name="min_price" 
+                            placeholder="Min $" 
+                            value="{{ form.min_price.value|default:'' }}"
+                            class="flex-1 px-3 py-2 bg-gray-50 border-0 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                        >
+                        <input 
+                            type="number" 
+                            name="max_price" 
+                            placeholder="Max $" 
+                            value="{{ form.max_price.value|default:'' }}"
+                            class="flex-1 px-3 py-2 bg-gray-50 border-0 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                        >
+                        <button type="button" id="clear-filters" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Enhanced Category Navigation with Icons -->
+    <div class="bg-white border-b shadow-sm">
+        <div class="px-4 py-4">
+            <!-- Categories Horizontal Scroll -->
+            <div class="flex space-x-3 overflow-x-auto scrollbar-hide pb-2" id="categories-container">
+                <!-- All Items -->
+                <button data-category="" class="category-btn flex-shrink-0 flex flex-col items-center space-y-1 px-4 py-3 bg-gray-900 text-white rounded-xl transition-all shadow-sm">
+                    <div class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-lg">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M5.127 3.502L5.25 3.5h9.5c.041 0 .082 0 .123.002A2.251 2.251 0 0012.75 2h-5.5a2.251 2.251 0 00-2.123 1.502zM1 10.25A2.25 2.25 0 013.25 8h13.5A2.25 2.25 0 0119 10.25v5.5A2.25 2.25 0 0116.75 18H3.25A2.25 2.25 0 011 15.75v-5.5zM3.25 6.5c-.04 0-.082 0-.123.002A2.251 2.251 0 005.25 5h9.5c.98 0 1.814.627 2.123 1.502a3.819 3.819 0 00-.123-.002H3.25z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium">All</span>
+                </button>
+                
+                {% for category in categories %}
+                <button data-category="{{ category.id }}" class="category-btn flex-shrink-0 flex flex-col items-center space-y-1 px-4 py-3 bg-white text-gray-700 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all">
+                    <div class="w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg group-hover:bg-blue-50 transition-colors">
+                       <i class="fas fa-{{ category.icon }}"></i>
+                    </div>
+                    <span class="text-xs font-medium text-center leading-tight">{{ category.name }}</span>
+                </button>
+                {% endfor %}
+            </div>
+            
+            <!-- Enhanced Subcategories with Icons -->
+            <div id="subcategory-section" class="hidden mt-4 pt-3 border-t border-gray-100">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-medium text-gray-700">Subcategories</h3>
+                    <button id="subcategory-clear" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Clear Selection</button>
+                </div>
+                <div id="subcategory-chips" class="flex space-x-2 overflow-x-auto scrollbar-hide"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Counter -->
+    <div class="px-4 py-3 bg-white border-b">
+        <div class="flex items-center justify-between">
+            <!-- <span id="results-count" class="text-sm text-gray-600 font-medium">
+                {{ listings.paginator.count }} result{{ listings.paginator.count|pluralize }}
+            </span> -->
+            <!-- Active Filters Display -->
+            <div id="active-filters" class="flex items-center space-x-2"></div>
+        </div>
+    </div>
+
+    <!-- Listings Grid -->
+    <div id="listings-container" class="px-4 py-4">
+        {% include 'listings/partials/listing_cards.html' %}
+    </div>
+</div>
+
+<style>
+    /* Hide scrollbar for horizontal scroll */
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Enhanced category button transitions */
+    .category-btn {
+        transition: all 0.3s ease;
+        min-width: 80px;
+    }
+    
+    .category-btn.active {
+        background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.3);
+    }
+
+    .category-btn.active .bg-gray-50 {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .category-btn.active i {
+        color: white;
+    }
+    
+    .category-btn:not(.active):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.1);
+        border-color: #d1d5db;
+    }
+
+    .category-btn:not(.active):hover .bg-gray-50 {
+        background-color: #eff6ff;
+    }
+
+    .category-btn:not(.active):hover i {
+        color: #3b82f6;
+    }
+
+    /* Subcategory chips styling */
+    .subcategory-chip {
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .subcategory-chip.active {
+        background: linear-gradient(135deg, #0c0e11 0%, #03060f 100%);
+        color: white;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px -4px rgba(59, 130, 246, 0.4);
+    }
+
+    .subcategory-chip:not(.active):hover {
+        background-color: #f3f4f6;
+        border-color: #3b82f6;
+        color: #3b82f6;
+        transform: translateY(-1px);
+    }
+
+    /* Loading states */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* Custom select styling */
+    select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    /* Active filter badges */
+    .filter-badge {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        color: #6383ed;
+        border: 1px solid #93c5fd;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        /* space-x: 0.25rem; */
+    }
+
+    /* Animation for filter toggle */
+    #filters-section {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    #subcategory-section {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+</style>
+
+<script>
+let selectedCategory = "{{ form.category.value|default:'' }}";
+let selectedSubcategory = "{{ form.subcategory.value|default:'' }}";
+
+// Filter toggle
+document.getElementById('filter-toggle').addEventListener('click', () => {
+    const filtersSection = document.getElementById('filters-section');
+    filtersSection.classList.toggle('hidden');
+});
+
+// Category buttons
+document.querySelectorAll('.category-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        selectedCategory = btn.dataset.category;
+        selectedSubcategory = '';
+        
+        // Update active state
+        document.querySelectorAll('.category-btn').forEach(b => {
+            b.classList.remove('active');
+            b.style.background = '';
+            b.style.color = '';
+            b.style.transform = '';
+            b.style.boxShadow = '';
+        });
+        
+        btn.classList.add('active');
+        
+        loadSubcategories(selectedCategory);
+        updateActiveFilters();
+        applyFilters();
+    });
+});
+
+// Load subcategories with enhanced design
+function loadSubcategories(categoryId) {
+    const container = document.getElementById('subcategory-chips');
+    const section = document.getElementById('subcategory-section');
+    
+    container.innerHTML = '';
+    
+    if (!categoryId) {
+        section.classList.add('hidden');
+        return;
+    }
+    
+    section.classList.remove('hidden');
+    
+    // Loading state for subcategories
+    container.innerHTML = '<div class="flex items-center space-x-2"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div><span class="text-xs text-gray-500">Loading...</span></div>';
+    
+    fetch(`/api/subcategories/?category_id=${categoryId}`)
+        .then(res => res.json())
+        .then(data => {
+            container.innerHTML = '';
+            data.forEach(sub => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = `subcategory-chip flex-shrink-0 flex items-center px-3 py-2 
+                                rounded-xl border shadow-sm transition-all duration-200
+                                ${
+                                    selectedSubcategory == sub.id
+                                        ? 'bg-blue-500 text-white border-blue-500 shadow-md scale-105'
+                                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                                }`;
+
+                
+            chip.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <div class="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 
+                            transition-all group-hover:bg-blue-100 group-hover:text-blue-600">
+                <i class="fa-solid fa-${sub.icon}"></i>
+                </div>
+                <span class="text-sm font-medium">${sub.name}</span>
+            </div>
+            `;
+
+                
+                chip.addEventListener('click', () => {
+                    selectedSubcategory = selectedSubcategory == sub.id ? '' : sub.id;
+                    loadSubcategories(categoryId);
+                    updateActiveFilters();
+                    applyFilters();
+                });
+                container.appendChild(chip);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading subcategories:', error);
+            container.innerHTML = '<span class="text-xs text-red-500">Failed to load subcategories</span>';
+        });
+}
+
+// Clear subcategory selection
+document.getElementById('subcategory-clear').addEventListener('click', () => {
+    selectedSubcategory = '';
+    loadSubcategories(selectedCategory);
+    updateActiveFilters();
+    applyFilters();
+});
+
+// Filter form changes
+document.getElementById('filter-form').addEventListener('input', () => {
+    updateActiveFilters();
+    clearTimeout(window.filterTimeout);
+    window.filterTimeout = setTimeout(applyFilters, 300);
+});
+
+// Enhanced clear filters - only clear form inputs, not category selection
+document.getElementById('clear-filters').addEventListener('click', () => {
+    // Clear only form inputs, keep category selection
+    const form = document.getElementById('filter-form');
+    const inputs = form.querySelectorAll('input[type="text"], input[type="number"], select');
+    inputs.forEach(input => {
+        if (input.name !== 'search') { // Keep search value if user wants to
+            input.value = '';
+        }
+    });
+    
+    updateActiveFilters();
+    applyFilters();
+});
+
+// Update active filters display
+function updateActiveFilters() {
+    const activeFiltersContainer = document.getElementById('active-filters');
+    const formData = new FormData(document.getElementById('filter-form'));
+    activeFiltersContainer.innerHTML = '';
+    
+    const filters = [];
+    
+    // Add form filters
+    if (formData.get('condition')) filters.push(`Condition: ${formData.get('condition')}`);
+    if (formData.get('min_price')) filters.push(`Min: $${formData.get('min_price')}`);
+    if (formData.get('max_price')) filters.push(`Max: $${formData.get('max_price')}`);
+    
+    // Add category/subcategory info
+    if (selectedCategory) {
+        const categoryBtn = document.querySelector(`[data-category="${selectedCategory}"]`);
+        if (categoryBtn) {
+            const categoryName = categoryBtn.querySelector('span').textContent;
+            filters.push(`Category: ${categoryName}`);
+        }
+    }
+    
+    // Display active filters
+    if (filters.length > 0) {
+        filters.forEach(filter => {
+            const badge = document.createElement('span');
+            badge.className = 'filter-badge';
+            badge.textContent = filter;
+            activeFiltersContainer.appendChild(badge);
+        });
+    }
+}
+
+// Apply filters
+function applyFilters() {
+    const formData = new FormData(document.getElementById('filter-form'));
+    if (selectedCategory) formData.set('category', selectedCategory);
+    if (selectedSubcategory) formData.set('subcategory', selectedSubcategory);
+    
+    const params = new URLSearchParams(formData);
+    const listingsContainer = document.getElementById('listings-container');
+    
+    // Loading state
+    listingsContainer.classList.add('loading');
+    listingsContainer.innerHTML = `
+        <div class="flex items-center justify-center py-20">
+            <div class="flex flex-col items-center space-y-3">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <p class="text-sm text-gray-500">Loading products...</p>
+            </div>
+        </div>
+    `;
+    
+    fetch(`/api/filter-listings/?${params}`)
+        .then(res => res.json())
+        .then(data => {
+            listingsContainer.innerHTML = data.listings_html;
+            listingsContainer.classList.remove('loading');
+            // document.getElementById('results-count').textContent = `${data.count} result${data.count !== 1 ? 's' : ''}`;
+            
+            // Update URL without page reload
+            const url = new URL(window.location);
+            url.search = params.toString();
+            window.history.replaceState({}, '', url);
+        })
+        .catch(error => {
+            console.error('Error filtering listings:', error);
+            listingsContainer.classList.remove('loading');
+            listingsContainer.innerHTML = `
+                <div class="text-center py-20">
+                    <div class="text-gray-400 text-4xl mb-4">⚠️</div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Unable to load products</h3>
+                    <p class="text-gray-500 mb-4">Please check your connection and try again</p>
+                    <button onclick="location.reload()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        Retry
+                    </button>
+                </div>
+            `;
+        });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    if (selectedCategory) {
+        loadSubcategories(selectedCategory);
+        
+        // Set initial button state
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            if (btn.dataset.category === selectedCategory) {
+                btn.classList.add('active');
+            }
+        });
+    }
+    
+    updateActiveFilters();
+});
+
+// Touch/swipe support for category scrolling
+let isScrolling = false;
+const categoriesContainer = document.getElementById('categories-container');
+
+categoriesContainer.addEventListener('touchstart', () => {
+    isScrolling = true;
+});
+
+categoriesContainer.addEventListener('touchend', () => {
+    setTimeout(() => {
+        isScrolling = false;
+    }, 100);
+});
+</script>
+{% endblock %}

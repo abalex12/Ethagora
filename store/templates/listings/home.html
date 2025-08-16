@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-gradient-to-r from-blue-50 to-indigo-50 -mt-1">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <!-- Left -->
+            <div>
+                <div class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full mb-6">
+                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    Trusted Local Marketplace
+                </div>
+                <h1 class="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                    Find Great Deals <br>
+                    <span class="text-indigo-600">Near You</span>
+                </h1>
+                <p class="text-lg text-gray-600 mb-8">
+                    Buy and sell with confidence in your local community. Discover unique items and connect with neighbors.
+                </p>
+
+                <!-- Search -->
+                <form action="{% url 'listings' %}" method="get" class="flex bg-white rounded-xl shadow-md overflow-hidden mb-8">
+                    <input type="text" name="q" placeholder="Search for anything..." 
+                           class="w-full px-4 py-3 focus:outline-none text-gray-700">
+                    <button type="submit" class="px-6 bg-indigo-600 text-white font-semibold hover:bg-indigo-700">
+                        Search
+                    </button>
+                </form>
+
+                <!-- Actions -->
+                <div class="flex flex-wrap gap-4">
+                    <a href="{% url 'listings' %}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
+                        Browse Marketplace
+                    </a>
+
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'create_listing' %}" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200">
+                            Sell Something
+                        </a>
+                    {% else %}
+                        <a href="{% url 'signup' %}" class="px-6 py-3 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200">
+                            Join Free
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right -->
+            <div class="hidden lg:block">
+                <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-900">Featured Today</h3>
+                        <span class="px-2 py-1 bg-red-100 text-red-600 text-xs font-medium rounded-full">Hot Deals</span>
+                    </div>
+                    {% include 'listings/partials/featured.html' %}
+                    <a href="{% url 'listings' %}" class="block text-center py-3 mt-4 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
+                        View All Items →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="bg-white border-y border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        <div>
+            <div class="text-2xl font-bold text-indigo-600">2,500+</div>
+            <div class="text-gray-600 text-sm">Active Listings</div>
+        </div>
+        <div>
+            <div class="text-2xl font-bold text-green-600">1,200+</div>
+            <div class="text-gray-600 text-sm">Happy Users</div>
+        </div>
+        <div>
+            <div class="text-2xl font-bold text-pink-600">350+</div>
+            <div class="text-gray-600 text-sm">Daily Deals</div>
+        </div>
+        <div>
+            <div class="text-2xl font-bold text-orange-600">4.8★</div>
+            <div class="text-gray-600 text-sm">User Rating</div>
+        </div>
+    </div>
+</div>
+
+<!-- Categories -->
+{% if categories %}
+<section class="bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="flex items-center justify-between mb-10">
+            <div>
+                <h2 class="text-2xl lg:text-3xl font-bold text-gray-900">Shop by Category</h2>
+                <p class="text-gray-600">Find exactly what you're looking for</p>
+            </div>
+            <a href="{% url 'listings' %}" class="hidden sm:inline-flex items-center px-4 py-2 bg-white border rounded-lg text-indigo-600 font-medium hover:bg-gray-50">
+                View All →
+            </a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+            {% for category in categories %}
+            <a href="{% url 'listings' %}?category={{ category.id }}" class="bg-white p-6 rounded-xl shadow hover:shadow-md text-center border border-gray-100 hover:border-indigo-200 transition">
+                <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-3 text-white">
+                    {% if category.icon %}
+                        <i class="fas fa-{{ category.icon }}"></i>
+                    {% else %}
+                        <i class="fas fa-box"></i>
+                    {% endif %}
+                </div>
+                <h3 class="font-semibold text-gray-900">{{ category.name }}</h3>
+                <p class="text-xs text-gray-500">Browse items</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent Listings -->
+<div class="bg-white">
+    <div id="listings-container" class="px-4 py-12">
+        {% include 'listings/partials/recent_listing_card.html' %}
+    </div>
+</div>
+
+<!-- How It Works -->
+<section class="bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="text-center mb-12">
+            <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">How It Works</h2>
+            <p class="text-gray-600 max-w-xl mx-auto">Start buying and selling in your local community in three simple steps</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-xl shadow text-center">
+                <div class="w-16 h-16 bg-indigo-600 text-white rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="font-bold text-gray-900 mb-2">Browse & Discover</h3>
+                <p class="text-gray-600 text-sm">Search through thousands of local listings or browse by category.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow text-center">
+                <div class="w-16 h-16 bg-green-600 text-white rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3 class="font-bold text-gray-900 mb-2">Connect & Chat</h3>
+                <p class="text-gray-600 text-sm">Message sellers directly and arrange meetups.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow text-center">
+                <div class="w-16 h-16 bg-purple-600 text-white rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3 class="font-bold text-gray-900 mb-2">Meet & Buy</h3>
+                <p class="text-gray-600 text-sm">Meet in a safe place, inspect the item, and complete your purchase.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <h2 class="text-3xl font-bold mb-4">Ready to Start Trading?</h2>
+        <p class="text-blue-100 mb-8">Join thousands of satisfied buyers and sellers in your community.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            {% if not user.is_authenticated %}
+                <a href="{% url 'signup' %}" class="px-6 py-3 bg-white text-indigo-600 rounded-lg font-bold hover:bg-gray-100">
+                    Get Started Free
+                </a>
+                <a href="{% url 'listings' %}" class="px-6 py-3 border border-white/50 rounded-lg font-bold hover:bg-white/10">
+                    Browse First
+                </a>
+            {% else %}
+                <a href="{% url 'create_listing' %}" class="px-6 py-3 bg-white text-indigo-600 rounded-lg font-bold hover:bg-gray-100">
+                    List Your First Item
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

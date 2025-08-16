@@ -1,0 +1,613 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% if is_create %}Create Listing{% else %}Edit Listing{% endif %} - Ethagora{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 py-6 sm:py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl mb-4">
+                <i class="fas fa-{% if is_create %}plus{% else %}edit{% endif %} text-white text-2xl"></i>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+                {% if is_create %}Create New Listing{% else %}Edit Listing{% endif %}
+            </h1>
+            <p class="text-gray-600 max-w-md mx-auto">
+                {% if is_create %}Share your item with the community and find the right buyer{% else %}Update your listing details{% endif %}
+            </p>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="bg-white/95 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <form method="post" enctype="multipart/form-data" class="divide-y divide-gray-100">
+                {% csrf_token %}
+
+                <!-- Basic Information Section -->
+                <div class="p-6 sm:p-8">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-info-circle text-white"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900">Basic Information</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Title -->
+                        <div class="lg:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-tag mr-2 text-gray-400"></i>Item Title *
+                            </label>
+                            <input type="text" name="title" required
+                                value="{{ form.title.value|default_if_none:'' }}"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50/50 hover:bg-white"
+                                placeholder="What are you selling?">
+                            {% if form.title.errors %}
+                                <p class="text-red-500 text-sm mt-2 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ form.title.errors.0 }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Price -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-dollar-sign mr-2 text-gray-400"></i>Price *
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">$</span>
+                                <input type="number" name="price" step="0.01" required
+                                   value="{{ form.price.value|default_if_none:'' }}"
+                                   class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50/50 hover:bg-white"
+                                   placeholder="0.00">
+                            </div>
+                            {% if form.price.errors %}
+                                <p class="text-red-500 text-sm mt-2 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ form.price.errors.0 }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Condition -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-star mr-2 text-gray-400"></i>Condition *
+                            </label>
+                            <select name="condition" required
+                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50/50 hover:bg-white">
+                                <option value="">Select Condition</option>
+                                <option value="new" {% if form.condition.value == "new" %}selected{% endif %}>✨ Brand New</option>
+                                <option value="used" {% if form.condition.value == "used" %}selected{% endif %}>📦 Used</option>
+                            </select>
+                            {% if form.condition.errors %}
+                                <p class="text-red-500 text-sm mt-2 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ form.condition.errors.0 }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Categories -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-folder mr-2 text-gray-400"></i>Category *
+                            </label>
+                            <select name="category" id="id_category" required
+                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50/50 hover:bg-white">
+                                <option value="">Select Category</option>
+                                {% for category in form.category.field.queryset %}
+                                    <option value="{{ category.id }}" {% if category.id == form.category.value %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.category.errors %}
+                                <p class="text-red-500 text-sm mt-2 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ form.category.errors.0 }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-tags mr-2 text-gray-400"></i>Subcategory *
+                            </label>
+                            <select name="subcategory" id="id_subcategory" required disabled
+                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50/50 hover:bg-white disabled:opacity-50">
+                                <option value="">Select Subcategory</option>
+                            </select>
+                            {% if form.subcategory.errors %}
+                                <p class="text-red-500 text-sm mt-2 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ form.subcategory.errors.0 }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Location -->
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-map-marker-alt mr-2 text-gray-400"></i>City *
+                            </label>
+                            <input type="text" name="location" id="cityInput" required
+                                value="{{ form.location.value|default_if_none:'' }}"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50/50 hover:bg-white"
+                                placeholder="Your city or area" autocomplete="off">
+
+                            <div id="suggestions" class="absolute w-full mt-1 max-h-48 overflow-y-auto bg-white shadow-lg rounded-xl hidden z-10"></div>
+
+                            {% if form.location.errors %}
+                                <p class="text-red-500 text-sm mt-2 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ form.location.errors.0 }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <script>
+                            const cities = [
+                                "Addis Ababa","Dire Dawa","Mekelle","Adama","Hawassa",
+                                "Bahir Dar","Gondar","Dessie","Jimma","Bishoftu",
+                                "Kombolcha","Harar","Sodo","Shashamene","Hosaena",
+                                "Arba Minch","Adigrat","Debre Markos","Debre Birhan","Jijiga",
+                                "Ziway","Dila","Gambela","Axum","Waliso",
+                                "Yirga Alem","Mojo","Goba","Shakiso","Areka",
+                                "Boditi","Debre Tabor","Jinka","Gimbi","Asosa",
+                                "Butajira","Metu","Agaro","Korem"
+                            ];
+
+                            const input = document.getElementById('cityInput');
+                            const suggestionsDiv = document.getElementById('suggestions');
+
+                            input.addEventListener('input', function() {
+                                const query = this.value.toLowerCase();
+                                suggestionsDiv.innerHTML = '';
+
+                                if (!query) {
+                                    suggestionsDiv.classList.add('hidden');
+                                    return;
+                                }
+
+                                const filtered = cities.filter(city => city.toLowerCase().startsWith(query));
+
+                                if (filtered.length === 0) {
+                                    suggestionsDiv.classList.add('hidden');
+                                    return;
+                                }
+
+                                suggestionsDiv.classList.remove('hidden');
+
+                                filtered.forEach(city => {
+                                    const div = document.createElement('div');
+                                    div.className = "px-4 py-2 cursor-pointer hover:bg-blue-100 hover:text-blue-800 transition-colors rounded-lg";
+                                    div.textContent = city;
+                                    div.addEventListener('click', () => {
+                                        input.value = city;
+                                        suggestionsDiv.innerHTML = '';
+                                        suggestionsDiv.classList.add('hidden');
+                                    });
+                                    suggestionsDiv.appendChild(div);
+                                });
+                            });
+
+                            // Only allow input if it matches a city
+                            input.addEventListener('blur', function() {
+                                if (!cities.includes(this.value)) {
+                                    this.value = '';
+                                }
+                            });
+
+                            document.addEventListener('click', e => {
+                                if (e.target !== input) {
+                                    suggestionsDiv.innerHTML = '';
+                                    suggestionsDiv.classList.add('hidden');
+                                }
+                            });
+                        </script>
+
+
+                        <!-- Telegram -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fab fa-telegram mr-2 text-gray-400"></i>Telegram Username *
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
+                                <input type="text" name="contact_telegram" required
+                                    value="{{ form.contact_telegram.value|default_if_none:'' }}"
+                                    class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50/50 hover:bg-white"
+                                    placeholder="your_username">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 flex items-center">
+                                <i class="fas fa-info-circle mr-1"></i>Enter without @ symbol
+                            </p>
+                            {% if form.contact_telegram.errors %}
+                                <p class="text-red-500 text-sm mt-2 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ form.contact_telegram.errors.0 }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="lg:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-align-left mr-2 text-gray-400"></i>Description *
+                            </label>
+                            <textarea name="description" rows="4" required
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50/50 hover:bg-white resize-none"
+                                placeholder="Describe your item in detail...">{{ form.description.value|default_if_none:'' }}</textarea>
+                            {% if form.description.errors %}
+                                <p class="text-red-500 text-sm mt-2 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ form.description.errors.0 }}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images Section -->
+                <div class="p-6 sm:p-8">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-images text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900">Item Photos</h2>
+                            <p class="text-sm text-gray-500">First image will be your main display photo</p>
+                        </div>
+                    </div>
+
+                    {{ formset.management_form }}
+                    <div id="image-forms" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                        {% for form in formset %}
+                            <div class="image-form-group bg-gray-50/50 border-2 border-dashed border-gray-200 rounded-2xl p-4 hover:border-blue-300 hover:bg-blue-50/30 transition-all {% if form.instance.pk %}existing-image border-solid bg-white{% else %}new-image{% endif %}"
+                                 data-form-index="{{ forloop.counter0 }}">
+                                {{ form.id }} {{ form.listing }}
+                                
+                                <!-- Image Preview -->
+                                <div class="image-preview w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden flex items-center justify-center mb-4 group cursor-pointer">
+                                    {% if form.instance.image %}
+                                        <img src="{{ form.instance.image.url }}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    {% else %}
+                                        <div class="text-center text-gray-400">
+                                            <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
+                                            <p class="text-sm">Click to upload</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Controls -->
+                                <div class="space-y-3">
+                                    <button type="button" class="image-upload-btn w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all text-sm font-medium">
+                                        {% if form.instance.image %}
+                                            <i class="fas fa-sync-alt mr-2"></i>Change Photo
+                                        {% else %}
+                                            <i class="fas fa-plus mr-2"></i>Add Photo
+                                        {% endif %}
+                                    </button>
+                                    {{ form.image }}
+
+                                    <div class="flex items-center justify-between text-sm">
+                                        <label class="flex items-center cursor-pointer">
+                                            {{ form.is_primary }}
+                                            <span class="ml-2 text-gray-700">
+                                                <i class="fas fa-star mr-1 text-yellow-400"></i>Main photo
+                                            </span>
+                                        </label>
+
+                                        {% if form.instance.pk %}
+                                            <label class="flex items-center cursor-pointer text-red-600 hover:text-red-700">
+                                                {{ form.DELETE }}
+                                                <span class="ml-2">
+                                                    <i class="fas fa-trash mr-1"></i>Delete
+                                                </span>
+                                            </label>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Add Photo Button -->
+                    <button type="button" id="add-image-btn"
+                            class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all flex items-center justify-center font-medium">
+                        <i class="fas fa-plus mr-2"></i>Add Another Photo
+                    </button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="p-6 sm:p-8 bg-gray-50/50">
+                    <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
+                        <a href="{% if is_create %}{% url 'listings' %}{% else %}{% url 'listing_detail' pk=listing.pk %}{% endif %}"
+                           class="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all text-center font-medium">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </a>
+                        
+                        <button type="submit" name="_save"
+                                class="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl hover:from-gray-800 hover:to-gray-700 transition-all font-medium shadow-lg">
+                            <i class="fas fa-{% if is_create %}plus{% else %}save{% endif %} mr-2"></i>
+                            {% if is_create %}Create Listing{% else %}Save Changes{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Empty form template -->
+<div id="empty-form-template" class="hidden">
+    <div class="image-form-group bg-gray-50/50 border-2 border-dashed border-gray-200 rounded-2xl p-4 hover:border-blue-300 hover:bg-blue-50/30 transition-all new-image" data-form-index="__prefix__">
+        {{ formset.empty_form.id }} {{ formset.empty_form.listing }}
+        
+        <div class="image-preview w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden flex items-center justify-center mb-4 group cursor-pointer">
+            <div class="text-center text-gray-400">
+                <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
+                <p class="text-sm">Click to upload</p>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <button type="button" class="image-upload-btn w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all text-sm font-medium">
+                <i class="fas fa-plus mr-2"></i>Add Photo
+            </button>
+            {{ formset.empty_form.image }}
+
+            <div class="flex items-center text-sm">
+                <label class="flex items-center cursor-pointer">
+                    {{ formset.empty_form.is_primary }}
+                    <span class="ml-2 text-gray-700">
+                        <i class="fas fa-star mr-1 text-yellow-400"></i>Main photo
+                    </span>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom styles to match base.html aesthetic */
+.image-form-group input[type="file"] {
+    display: none;
+}
+
+.image-preview {
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.image-preview:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+}
+
+/* Form field focus effects */
+input:focus, select:focus, textarea:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15), 0 10px 10px -5px rgba(59, 130, 246, 0.04);
+}
+
+/* Gradient background animation */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Button hover effects */
+button, .btn {
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+button:hover, .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+}
+
+/* Mobile-first responsive adjustments */
+@media (max-width: 640px) {
+    .image-form-group {
+        margin-bottom: 1rem;
+    }
+    
+    h1 {
+        font-size: 1.875rem;
+    }
+    
+    .grid.grid-cols-1.lg\\:grid-cols-2 {
+        gap: 1rem;
+    }
+}
+
+/* Loading state for category dropdown */
+#id_subcategory:disabled {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3ccircle cx='12' cy='12' r='10' stroke='%236B7280' stroke-width='2'/%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m15 9-6 6m0-6 6 6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+}
+
+/* Form validation styles */
+.field-error {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Category → Subcategory AJAX with improved UX
+    const categorySelect = document.getElementById('id_category');
+    const subcategorySelect = document.getElementById('id_subcategory');
+    
+    categorySelect.addEventListener('change', function() {
+        const categoryId = this.value;
+        subcategorySelect.innerHTML = '<option value="">Loading...</option>';
+        subcategorySelect.disabled = true;
+
+        if (categoryId) {
+            fetch(`/api/subcategories/?category_id=${categoryId}`)
+                .then(res => res.json())
+                .then(data => {
+                    subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+                    data.forEach(sc => {
+                        const opt = document.createElement('option');
+                        opt.value = sc.id;
+                        opt.textContent = sc.name;
+                        subcategorySelect.appendChild(opt);
+                    });
+                    subcategorySelect.disabled = false;
+                })
+                .catch(() => {
+                    subcategorySelect.innerHTML = '<option value="">Error loading</option>';
+                });
+        } else {
+            subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+        }
+    });
+
+    // Enhanced image upload with preview
+    function initImageFormEvents(formGroup) {
+        const uploadBtn = formGroup.querySelector('.image-upload-btn');
+        const fileInput = formGroup.querySelector('input[type=file]');
+        const preview = formGroup.querySelector('.image-preview');
+
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                
+                // Validate file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    this.value = '';
+                    return;
+                }
+                
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select a valid image file');
+                    this.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.innerHTML = `<img src="${e.target.result}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-300">`;
+                    uploadBtn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Change Photo';
+                    
+                    // Add success animation
+                    preview.style.animation = 'pulse 0.5s ease-in-out';
+                    setTimeout(() => preview.style.animation = '', 500);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Click on preview to change image
+        preview.addEventListener('click', () => fileInput.click());
+    }
+
+    // Initialize existing image forms
+    document.querySelectorAll('.image-form-group').forEach(initImageFormEvents);
+
+    // Add new image form with animation
+    const addImageBtn = document.getElementById('add-image-btn');
+    const totalForms = document.getElementById('id_images-TOTAL_FORMS');
+    const formContainer = document.getElementById('image-forms');
+    const emptyFormTemplate = document.getElementById('empty-form-template').innerHTML;
+
+    addImageBtn.addEventListener('click', function() {
+        const formIndex = parseInt(totalForms.value);
+        
+        // Limit to 6 images
+        if (formIndex >= 6) {
+            alert('Maximum 6 images allowed');
+            return;
+        }
+        
+        const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formIndex);
+        formContainer.insertAdjacentHTML('beforeend', newFormHtml);
+        totalForms.value = formIndex + 1;
+        
+        const newFormGroup = formContainer.lastElementChild;
+        initImageFormEvents(newFormGroup);
+        
+        // Scroll to new form with animation
+        newFormGroup.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        newFormGroup.style.animation = 'slideIn 0.5s ease-out';
+        
+        // Update button text
+        if (formIndex + 1 >= 6) {
+            addImageBtn.style.display = 'none';
+        }
+    });
+
+    // Primary image selection logic
+    document.addEventListener('change', function(e) {
+        if (e.target.name && e.target.name.includes('is_primary')) {
+            // Uncheck other primary checkboxes
+            document.querySelectorAll('input[name*="is_primary"]').forEach(checkbox => {
+                if (checkbox !== e.target) {
+                    checkbox.checked = false;
+                }
+            });
+        }
+    });
+
+    // Form validation with better UX
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+        let hasErrors = false;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('field-error', 'border-red-300');
+                hasErrors = true;
+                
+                setTimeout(() => {
+                    field.classList.remove('field-error');
+                }, 500);
+            } else {
+                field.classList.remove('border-red-300');
+            }
+        });
+
+        if (hasErrors) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstError = form.querySelector('.field-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        }
+    });
+});
+
+// Add slideIn animation for new image forms
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

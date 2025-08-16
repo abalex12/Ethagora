@@ -1,0 +1,537 @@
+{% load i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ethagora{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1f2937',
+                        secondary: '#374151',
+                        accent: '#3b82f6',
+                        light: '#f8fafc'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Enhanced Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-lg shadow-sm border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo - Enhanced for mobile -->
+                <div class="flex items-center">
+                    <a href="{% url 'home' %}" class="flex items-center space-x-3 text-2xl font-bold text-primary hover:text-gray-600 transition-colors">
+                        <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-shopping-bag text-white text-lg"></i>
+                        </div>
+                        <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Ethagora</span>
+                    </a>
+                </div>
+
+                <!-- Mobile Header Actions - NEW -->
+                <div class="flex items-center space-x-2 lg:hidden">
+                    {% if user.is_authenticated %}
+                        <!-- Quick Actions for Mobile -->
+                        <a href="{% url 'create_listing' %}" class="p-2.5 bg-gradient-to-r from-accent to-blue-600 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300">
+                            <i class="fas fa-plus text-sm"></i>
+                        </a>
+                        <div class="relative">
+                            <button id="mobile-user-btn" class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
+                                <div class="w-7 h-7 bg-gradient-to-br from-accent to-blue-600 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-white text-xs"></i>
+                                </div>
+                            </button>
+                            <!-- Mobile User Quick Menu -->
+                            <div id="mobile-user-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2">
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <p class="text-sm font-semibold text-gray-900">{{ user.username }}</p>
+                                    <p class="text-xs text-gray-500">{{ user.email }}</p>
+                                </div>
+                                <a href="{% url 'my_listings' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-list mr-3 w-4"></i>My Listings
+                                </a>
+                                <a href="{% url 'listings' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-search mr-3 w-4"></i>Browse Items
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- Login/Signup for mobile header -->
+                        <a href="{% url 'login' %}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors">
+                            Login
+                        </a>
+                        <a href="{% url 'signup' %}" class="px-3 py-2 bg-gradient-to-r from-accent to-blue-600 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all duration-300">
+                            Sign Up
+                        </a>
+                    {% endif %}
+                    
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-btn" class="p-2.5 rounded-lg text-gray-700 hover:text-primary hover:bg-gray-100 transition-all ml-2">
+                        <i class="fas fa-bars text-lg"></i>
+                    </button>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden lg:flex items-center space-x-1">
+                    <a href="{% url 'home' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 transition-all">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </a>
+                    <a href="{% url 'listings' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 transition-all">
+                        <i class="fas fa-search mr-2"></i>Browse
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'create_listing' %}" class="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:from-gray-800 hover:to-gray-700 transition-all duration-300 shadow-sm font-medium text-sm">
+                            <i class="fas fa-plus mr-2"></i>Sell Item
+                        </a>
+                        <a href="{% url 'my_listings' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 transition-all">
+                            <i class="fas fa-list mr-2"></i>My Items
+                        </a>
+                        
+                        <!-- Desktop User Menu Dropdown -->
+                        <div class="relative">
+                            <button id="user-menu-btn" class="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 transition-all">
+                                <div class="w-8 h-8 bg-gradient-to-br from-accent to-blue-600 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-white text-xs"></i>
+                                </div>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            
+                            <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2">
+                                <div class="px-4 py-2 border-b border-gray-100">
+                                    <p class="text-sm font-medium text-gray-900">{{ user.username }}</p>
+                                    <p class="text-xs text-gray-500">{{ user.email }}</p>
+                                </div>
+                                <a href="{% url 'my_listings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-list mr-2"></i>My Listings
+                                </a>
+                                <form method="post" action="{% url 'logout' %}" class="block">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 transition-all">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        </a>
+                        <a href="{% url 'signup' %}" class="px-4 py-2 bg-gradient-to-r from-accent to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-sm font-medium text-sm">
+                            <i class="fas fa-user-plus mr-2"></i>Sign Up
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Enhanced Mobile Menu -->
+        <div id="mobile-menu" class="lg:hidden hidden bg-white/98 backdrop-blur-lg border-t border-gray-100">
+            <div class="px-4 pt-4 pb-4 space-y-3">
+                <!-- Mobile Search Bar -->
+                {% include 'listings/partials/search_filter.html' %}
+
+                <!-- Navigation Links -->
+                <a href="{% url 'home' %}" class="flex items-center space-x-3 text-gray-700 hover:text-primary hover:bg-gray-50 px-4 py-3 rounded-xl transition-all group">
+                    <div class="w-10 h-10 bg-gray-100 group-hover:bg-accent group-hover:text-white rounded-lg flex items-center justify-center transition-all">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div>
+                        <span class="font-semibold">Home</span>
+                        <p class="text-xs text-gray-500">Back to homepage</p>
+                    </div>
+                </a>
+
+                <a href="{% url 'listings' %}" class="flex items-center space-x-3 text-gray-700 hover:text-primary hover:bg-gray-50 px-4 py-3 rounded-xl transition-all group">
+                    <div class="w-10 h-10 bg-gray-100 group-hover:bg-accent group-hover:text-white rounded-lg flex items-center justify-center transition-all">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div>
+                        <span class="font-semibold">Browse Items</span>
+                        <p class="text-xs text-gray-500">Discover great deals</p>
+                    </div>
+                </a>
+                
+                {% if user.is_authenticated %}                    
+                    <a href="{% url 'create_listing' %}" class="flex items-center space-x-3 bg-gradient-to-r from-primary to-secondary text-white px-4 py-3 rounded-xl transition-all shadow-sm group">
+                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Sell Item</span>
+                            <p class="text-xs text-white/80">List something to sell</p>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'my_listings' %}" class="flex items-center space-x-3 text-gray-700 hover:text-primary hover:bg-gray-50 px-4 py-3 rounded-xl transition-all group">
+                        <div class="w-10 h-10 bg-gray-100 group-hover:bg-accent group-hover:text-white rounded-lg flex items-center justify-center transition-all">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div>
+                            <span class="font-semibold">My Listings</span>
+                            <p class="text-xs text-gray-500">Manage your items</p>
+                        </div>
+                    </a>
+                    
+                    <div class="border-t border-gray-100 pt-4 mt-4">
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="flex items-center space-x-3 text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-3 rounded-xl transition-all w-full text-left group">
+                                <div class="w-10 h-10 bg-red-100 group-hover:bg-red-200 rounded-lg flex items-center justify-center transition-all">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </div>
+                                <div>
+                                    <span class="font-semibold">Logout</span>
+                                    <p class="text-xs text-red-400">Sign out of account</p>
+                                </div>
+                            </button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <a href="{% url 'login' %}" class="flex items-center justify-center space-x-2 text-gray-700 hover:text-primary hover:bg-gray-50 px-4 py-3 rounded-xl transition-all border border-gray-200">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="font-medium">Login</span>
+                        </a>
+                        <a href="{% url 'signup' %}" class="flex items-center justify-center space-x-2 bg-gradient-to-r from-accent to-blue-600 text-white px-4 py-3 rounded-xl transition-all">
+                            <i class="fas fa-user-plus"></i>
+                            <span class="font-medium">Sign Up</span>
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Enhanced Messages -->
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            {% for message in messages %}
+                <div class="message-alert mb-4 p-4 rounded-xl border-l-4 shadow-sm {% if message.tags == 'success' %}bg-green-50 border-green-400 text-green-700{% elif message.tags == 'error' %}bg-red-50 border-red-400 text-red-700{% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-400 text-yellow-700{% else %}bg-blue-50 border-blue-400 text-blue-700{% endif %}">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            {% if message.tags == 'success' %}
+                                <i class="fas fa-check-circle text-lg"></i>
+                            {% elif message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle text-lg"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="fas fa-exclamation-triangle text-lg"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle text-lg"></i>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <p class="text-sm font-medium">{{ message }}</p>
+                        </div>
+                        <div class="ml-4 flex-shrink-0">
+                            <button onclick="this.closest('.message-alert').remove()" class="rounded-md inline-flex text-current opacity-60 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 p-1">
+                                <i class="fas fa-times text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main content -->
+    <main class="min-h-screen">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Enhanced Footer -->
+    <footer class="bg-white border-t border-gray-100 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-shopping-bag text-white"></i>
+                        </div>
+                        <span class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Ethagora</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed mb-6 text-sm lg:text-base">
+                        Your trusted platform for buying and selling quality items. Connect with your community, discover amazing deals, and turn your unused items into cash.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 bg-gray-100 hover:bg-primary hover:text-white rounded-lg flex items-center justify-center transition-all duration-300">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-100 hover:bg-primary hover:text-white rounded-lg flex items-center justify-center transition-all duration-300">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-100 hover:bg-primary hover:text-white rounded-lg flex items-center justify-center transition-all duration-300">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-100 hover:bg-primary hover:text-white rounded-lg flex items-center justify-center transition-all duration-300">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-6">Quick Links</h3>
+                    <ul class="space-y-3">
+                        <li><a href="{% url 'home' %}" class="text-gray-600 hover:text-primary text-sm transition-colors flex items-center space-x-2">
+                            <i class="fas fa-chevron-right text-xs"></i><span>Home</span>
+                        </a></li>
+                        <li><a href="{% url 'listings' %}" class="text-gray-600 hover:text-primary text-sm transition-colors flex items-center space-x-2">
+                            <i class="fas fa-chevron-right text-xs"></i><span>Browse Items</span>
+                        </a></li>
+                        <li><a href="{% url 'create_listing' %}" class="text-gray-600 hover:text-primary text-sm transition-colors flex items-center space-x-2">
+                            <i class="fas fa-chevron-right text-xs"></i><span>Sell Item</span>
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <!-- Support -->
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-6">Support</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-600 hover:text-primary text-sm transition-colors flex items-center space-x-2">
+                            <i class="fas fa-chevron-right text-xs"></i><span>Help Center</span>
+                        </a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-primary text-sm transition-colors flex items-center space-x-2">
+                            <i class="fas fa-chevron-right text-xs"></i><span>Contact Us</span>
+                        </a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-primary text-sm transition-colors flex items-center space-x-2">
+                            <i class="fas fa-chevron-right text-xs"></i><span>Privacy Policy</span>
+                        </a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-primary text-sm transition-colors flex items-center space-x-2">
+                            <i class="fas fa-chevron-right text-xs"></i><span>Terms of Service</span>
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-200 mt-12 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                    <p class="text-gray-500 text-sm">&copy; 2025 Ethagora. All rights reserved.</p>
+                    <p class="text-gray-500 text-sm flex items-center space-x-1">
+                        <span>Made with</span>
+                        <i class="fas fa-heart text-red-500"></i>
+                        <span>for the community</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        /* Enhanced animations and effects */
+        .message-alert {
+            animation: slideInDown 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+        }
+        
+        /* Enhanced nav link effects */
+        .nav-link {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .nav-link:hover::before {
+            left: 100%;
+        }
+        
+        /* Mobile menu enhanced animations */
+        #mobile-menu {
+            transform: translateY(-10px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        #mobile-menu:not(.hidden) {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Dropdown animations */
+        #user-dropdown, #mobile-user-dropdown {
+            transform: translateY(-8px);
+            opacity: 0;
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        #user-dropdown:not(.hidden), #mobile-user-dropdown:not(.hidden) {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Glassmorphism effect */
+        .backdrop-blur-lg {
+            backdrop-filter: blur(12px) saturate(180%);
+        }
+        
+        /* Button hover effects */
+        .group:hover .group-hover\:scale-105 {
+            transform: scale(1.05);
+        }
+        
+        /* Custom scrollbar for mobile menu */
+        #mobile-menu {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
+        }
+        
+        #mobile-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        #mobile-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        #mobile-menu::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 2px;
+        }
+    </style>
+
+    <script>
+        // Enhanced mobile menu toggle with improved animations
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const icon = this.querySelector('i');
+            
+            mobileMenu.classList.toggle('hidden');
+            
+            // Enhanced icon animation
+            if (mobileMenu.classList.contains('hidden')) {
+                icon.className = 'fas fa-bars text-lg transform transition-transform duration-300';
+                document.body.style.overflow = 'auto';
+            } else {
+                icon.className = 'fas fa-times text-lg transform rotate-180 transition-transform duration-300';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+        
+        // Enhanced user dropdown functionality
+        function setupDropdown(buttonId, dropdownId) {
+            const button = document.getElementById(buttonId);
+            const dropdown = document.getElementById(dropdownId);
+            
+            if (button && dropdown) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Close other dropdowns
+                    document.querySelectorAll('[id$="-dropdown"]').forEach(d => {
+                        if (d !== dropdown) {
+                            d.classList.add('hidden');
+                        }
+                    });
+                    
+                    dropdown.classList.toggle('hidden');
+                });
+            }
+        }
+        
+        setupDropdown('user-menu-btn', 'user-dropdown');
+        setupDropdown('mobile-user-btn', 'mobile-user-dropdown');
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('[id$="-dropdown"]').forEach(dropdown => {
+                const button = document.querySelector(`[id="${dropdown.id.replace('-dropdown', '-btn')}"]`);
+                if (button && !button.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        });
+        
+        // Enhanced message auto-hide with better animations
+        document.querySelectorAll('.message-alert').forEach((alert, index) => {
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.style.animation = 'slideOut 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards';
+                    setTimeout(() => alert.remove(), 400);
+                }
+            }, 5000 + (index * 500)); // Stagger the hiding
+        });
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Enhanced mobile search functionality (placeholder)
+        const mobileSearchInput = document.querySelector('#mobile-menu input[type="text"]');
+        if (mobileSearchInput) {
+            mobileSearchInput.addEventListener('focus', function() {
+                this.parentElement.classList.add('ring-2', 'ring-accent');
+            });
+            
+            mobileSearchInput.addEventListener('blur', function() {
+                this.parentElement.classList.remove('ring-2', 'ring-accent');
+            });
+        }
+        
+        // Add loading states for forms
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!-- Recent Listings -->
+{% load i18n %}
+{% if recent_listings %}
+<section class="bg-gradient-to-br from-gray-50 to-gray-100 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-12">
+            <div>
+                <h2 class="text-4xl font-bold text-primary mb-2">Recent Listings</h2>
+                <p class="text-gray-600 text-lg">Fresh items from our community</p>
+            </div>
+            <a href="{% url 'listings' %}" 
+               class="group flex items-center text-accent hover:text-blue-700 font-bold text-lg transition-colors duration-300">
+                View All 
+                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-300"></i>
+            </a>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for listing in recent_listings %}
+            <a href="{{ listing.get_absolute_url }}" >
+            <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-accent/30 transform hover:-translate-y-2">
+                <!-- Image Container -->
+                <div class="relative overflow-hidden">
+                    {% if listing.get_primary_image %}
+                        <img src="{{ listing.get_primary_image.image.url }}" 
+                             alt="{{ listing.title }}" 
+                             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                    {% else %}
+                        <div class="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-colors duration-300">
+                            <i class="fas fa-image text-gray-400 text-4xl group-hover:text-gray-500 transition-colors duration-300"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Condition Badge -->
+                    <div class="absolute top-3 right-3">
+                        <span class="px-3 py-1 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 rounded-full shadow-sm">
+                            {{ listing.get_condition_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Content -->
+                <div class="p-5">
+                    <h3 class="font-bold text-lg mb-2 text-primary group-hover:text-accent transition-colors duration-300 line-clamp-2">
+                        <span class="hover:underline">{{ listing.title }}</span>
+                    </h3>
+                    
+                    <!-- Price -->
+                    <div class="text-2xl font-black text-green-600 mb-3">
+                        ${{ listing.price }}
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="flex items-center text-gray-500 text-sm">
+                        <i class="fas fa-map-marker-alt mr-2 text-accent"></i>
+                        {{ listing.location }}
+                    </div>
+                </div>
+            </div>
+           
+            {% endfor %}    
+        </a>
+
+        </div>
+    </div>
+</section>
+{% endif %}

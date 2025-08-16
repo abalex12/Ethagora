@@ -1,0 +1,1104 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{{ listing.title }} - Ethagora{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="bg-gradient-to-r from-gray-50 to-gray-100 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex items-center space-x-2 text-sm">
+            <a href="{% url 'home' %}" class="text-gray-500 hover:text-accent transition-colors duration-300">
+                <i class="fas fa-home mr-1"></i>Home
+            </a>
+            <i class="fas fa-chevron-right text-gray-400"></i>
+            <a href="{% url 'listings' %}" class="text-gray-500 hover:text-accent transition-colors duration-300">Listings</a>
+            <i class="fas fa-chevron-right text-gray-400"></i>
+            <a href="{% url 'listings' %}?category={{ listing.category.id }}" class="text-gray-500 hover:text-accent transition-colors duration-300">
+                {{ listing.category.name }}
+            </a>
+            <i class="fas fa-chevron-right text-gray-400"></i>
+            <span class="text-primary font-medium truncate">{{ listing.title|truncatechars:30 }}</span>
+        </nav>
+        
+        <!-- Back Button -->
+        <div class="mt-4">
+            <a href="{% url 'listings' %}" class="group inline-flex items-center text-accent hover:text-blue-700 font-medium transition-all duration-300">
+                <div class="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center mr-3 group-hover:bg-accent/20 transition-colors duration-300">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </div>
+                Back to Listings
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Main Product Section -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        
+        <!-- Image Gallery Section -->
+        <div class="space-y-6">
+            {% if listing.images.all %}
+                <!-- Main Image Container with Sliding -->
+                <div class="relative group">
+                    <div class="aspect-w-1 aspect-h-1 bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100 relative">
+                        <div id="image-slider" class="flex transition-transform duration-500 ease-in-out h-96 lg:h-[500px]">
+                            {% for image in listing.images.all %}
+                                <img src="{{ image.image.url }}" 
+                                     alt="{{ listing.title }}" 
+                                     class="w-full h-full object-cover flex-shrink-0 slider-image"
+                                     data-index="{{ forloop.counter0 }}">
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Navigation Arrows -->
+                        {% if listing.images.count > 1 %}
+                            <button id="prev-btn" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/70 z-10">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button id="next-btn" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/70 z-10">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Image Counter Badge -->
+                    {% if listing.images.count > 1 %}
+                    <div class="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium z-10">
+                        <i class="fas fa-images mr-1"></i>
+                        <span id="image-counter">1</span> / {{ listing.images.count }}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Zoom Icon -->
+                    <div class="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer z-10" onclick="openImageModal()">
+                        <i class="fas fa-expand text-gray-700"></i>
+                    </div>
+                </div>
+                
+                <!-- Thumbnail Gallery -->
+                {% if listing.images.count > 1 %}
+                <div class="flex space-x-3 overflow-x-auto pb-2">
+                    {% for image in listing.images.all %}
+                    <div class="relative group flex-shrink-0">
+                        <img src="{{ image.image.url }}" alt="{{ listing.title }}"
+                            class="w-20 h-20 lg:w-24 lg:h-24 object-cover rounded-2xl cursor-pointer border-2 border-transparent hover:border-accent transition-all duration-300 thumbnail-image"
+                            data-index="{{ forloop.counter0 }}"
+                            onclick="goToSlide({{ forloop.counter0 }})">
+                        {% if image.is_primary %}
+                        <div class="absolute -top-1 -right-1 w-4 h-4 bg-accent rounded-full flex items-center justify-center">
+                            <i class="fas fa-star text-white text-xs"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            {% else %}
+                <!-- No Image Placeholder -->
+                <div class="aspect-w-1 aspect-h-1 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center h-96 lg:h-[500px] border-2 border-dashed border-gray-300">
+                    <div class="text-center">
+                        <i class="fas fa-image text-gray-400 text-6xl mb-4"></i>
+                        <p class="text-gray-500 text-lg">No images available</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Product Details Section -->
+        <div class="space-y-8">
+            <!-- Header Section -->
+            <div class="space-y-4">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <h1 class="text-3xl lg:text-4xl font-black text-primary leading-tight mb-4">{{ listing.title }}</h1>
+                        
+                        <!-- Price and Stats -->
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div class="text-4xl font-black text-green-600">
+                                ${{ listing.price }}
+                            </div>
+                            <div class="flex items-center space-x-6 text-sm text-gray-500">
+                                <div class="flex items-center">
+                                    <i class="fas fa-eye mr-2 text-accent"></i>
+                                    <span class="font-medium">{{ listing.view_count }} views</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar mr-2 text-accent"></i>
+                                    <span class="font-medium">{{ listing.created_at|date:"M d, Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Condition Badge -->
+                <div class="inline-flex">
+                    <span class="px-4 py-2 bg-gradient-to-r from-accent/10 to-blue-400/10 text-accent rounded-full text-sm font-bold border border-accent/20">
+                        <i class="fas fa-{% if listing.condition == 'new' %}star{% else %}history{% endif %} mr-2"></i>
+                        {{ listing.get_condition_display }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Key Details Card -->
+            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-6 border border-gray-200">
+                <h3 class="text-lg font-bold text-primary mb-4 flex items-center">
+                    <i class="fas fa-info-circle mr-2 text-accent"></i>
+                    Product Details
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                            <i class="fas fa-tag text-accent"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Category</p>
+                            <p class="font-bold text-primary">{{ listing.category.name }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                            <i class="fas fa-layer-group text-accent"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Subcategory</p>
+                            <p class="font-bold text-primary">{{ listing.subcategory.name }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                            <i class="fas fa-map-marker-alt text-accent"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">City</p>
+                            <p class="font-bold text-primary">{{ listing.location }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                            <i class="fas fa-user text-accent"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Seller</p>
+                            <p class="font-bold text-primary">{{ listing.seller.username }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="space-y-4">
+                <h3 class="text-2xl font-bold text-primary flex items-center">
+                    <i class="fas fa-align-left mr-3 text-accent"></i>
+                    Description
+                </h3>
+                <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
+                    <p class="text-gray-700 leading-relaxed whitespace-pre-line text-lg">{{ listing.description }}</p>
+                </div>
+            </div>
+
+            <!-- Contact Seller Card or Seller Actions -->
+            {% if request.user == listing.seller %}
+                <!-- Seller Management Section -->
+                <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-8 border-2 border-amber-200">
+                    <h3 class="text-2xl font-bold text-primary flex items-center mb-6">
+                        <i class="fas fa-cog mr-3 text-amber-600"></i>
+                        Manage Your Listing
+                    </h3>
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                        <!-- View / Edit Actions -->
+                        <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-col">
+                            <a href="{{ listing.get_absolute_url }}"
+                               class="bg-blue-600 hover:bg-blue-700 text-white text-center py-3 px-4 rounded-2xl text-sm font-medium transition-all duration-300 flex items-center justify-center transform hover:-translate-y-0.5">
+                                <i class="fas fa-eye mr-1 sm:mr-2"></i><span>View</span>
+                            </a>
+                            <a href="{% url 'listing_edit' listing.pk %}"
+                               class="bg-yellow-500 hover:bg-yellow-600 text-white text-center py-3 px-4 rounded-2xl text-sm font-medium transition-all duration-300 flex items-center justify-center transform hover:-translate-y-0.5">
+                                <i class="fas fa-edit mr-1 sm:mr-2"></i><span>Edit</span>
+                            </a>
+                        </div>
+
+                        <!-- Status Menu -->
+                        <details class="w-full sm:w-auto relative group/status" data-status>
+                            <summary class="list-none w-full select-none cursor-pointer bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-2xl text-sm font-medium inline-flex items-center justify-center transition-all duration-300">
+                                <i class="fas fa-exchange-alt mr-1 sm:mr-2"></i>
+                                <span>Status</span>
+                                <i class="fas fa-chevron-down ml-1 sm:ml-2 text-xs chevron transition-transform duration-200"></i>
+                            </summary>
+
+                            <div class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-200 status-menu overflow-hidden z-20">
+                                <a href="{% url 'listing_set_status' listing.pk 'available' %}"
+                                   class="block px-4 py-3 text-sm hover:bg-gray-50 transition-colors duration-200 {% if listing.status == 'available' %}bg-blue-50 font-medium text-blue-700{% endif %}">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i> Available
+                                </a>
+                                <a href="{% url 'listing_set_status' listing.pk 'sold' %}"
+                                   class="block px-4 py-3 text-sm hover:bg-gray-50 transition-colors duration-200 {% if listing.status == 'sold' %}bg-blue-50 font-medium text-blue-700{% endif %}">
+                                    <i class="fas fa-dollar-sign text-red-500 mr-2"></i> Sold
+                                </a>
+                                <a href="{% url 'listing_set_status' listing.pk 'removed' %}"
+                                   class="block px-4 py-3 text-sm hover:bg-gray-50 transition-colors duration-200 {% if listing.status == 'removed' %}bg-blue-50 font-medium text-blue-700{% endif %}">
+                                    <i class="fas fa-times-circle text-gray-500 mr-2"></i> Removed
+                                </a>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Contact Seller Card -->
+                <div class="bg-gradient-to-br from-accent/5 to-blue-400/5 rounded-3xl p-8 border-2 border-accent/20">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-primary flex items-center">
+                            <i class="fas fa-handshake mr-3 text-accent"></i>
+                            Contact Seller
+                        </h3>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <div class="w-3 h-3 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                            Available now
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex items-center p-4 bg-white rounded-2xl border border-gray-200">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mr-4">
+                                <i class="fab fa-telegram text-white text-xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-600">Telegram</p>
+                                <p class="font-bold text-primary text-lg">@{{ listing.contact_telegram }}</p>
+                            </div>
+                            <a href="https://t.me/{{ listing.contact_telegram }}" target="_blank" 
+                               class="text-accent hover:text-blue-700 transition-colors duration-300">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                        
+                        {% if listing.seller.phone %}
+                        <div class="flex items-center p-4 bg-white rounded-2xl border border-gray-200">
+                            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mr-4">
+                                <i class="fas fa-phone text-white text-xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-600">Phone</p>
+                                <p class="font-bold text-primary text-lg">{{ listing.seller.phone }}</p>
+                            </div>
+                            <a href="tel:{{ listing.seller.phone }}" 
+                               class="text-accent hover:text-blue-700 transition-colors duration-300">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-1 {% if listing.seller.phone %}sm:grid-cols-2{% endif %} gap-4">
+                        <a href="https://t.me/{{ listing.contact_telegram }}" target="_blank" 
+                           class="group relative bg-gradient-to-r from-accent to-blue-600 text-white text-center py-4 px-6 rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="fab fa-telegram mr-2"></i>Message on Telegram
+                            <div class="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </a>
+                        
+                        {% if listing.seller.phone %}
+                        <a href="tel:{{ listing.seller.phone }}" 
+                           class="group relative bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-4 px-6 rounded-2xl hover:from-green-600 hover:to-green-700 transition-all duration-300 font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="fas fa-phone mr-2"></i>Call Now
+                            <div class="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Related Listings Section -->
+    {% if related_listings %}
+    <div class="mt-20">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-primary mb-4">You Might Also Like</h2>
+            <p class="text-gray-600 text-lg max-w-2xl mx-auto">Discover similar items from our ethagora</p>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for related in related_listings %}
+            <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-accent/30 transform hover:-translate-y-2">
+                <!-- Image Container -->
+                <div class="relative overflow-hidden">
+                    {% if related.get_primary_image %}
+                        <img src="{{ related.get_primary_image.image.url }}" alt="{{ related.title }}" 
+                             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                    {% else %}
+                        <div class="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-colors duration-300">
+                            <i class="fas fa-image text-gray-400 text-4xl group-hover:text-gray-500 transition-colors duration-300"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Quick View Button -->
+                    <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <a href="{{ related.get_absolute_url }}" 
+                           class="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 hover:text-accent transition-colors duration-300">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Content -->
+                <div class="p-5">
+                    <h3 class="font-bold text-lg mb-2 text-primary group-hover:text-accent transition-colors duration-300 line-clamp-2">
+                        <a href="{{ related.get_absolute_url }}">{{ related.title }}</a>
+                    </h3>
+                    
+                    <!-- Price -->
+                    <div class="text-2xl font-black text-green-600 mb-3">
+                        ${{ related.price }}
+                    </div>
+                    
+                    <!-- Location and Date -->
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <div class="flex items-center">
+                            <i class="fas fa-map-marker-alt mr-1 text-accent"></i>
+                            {{ related.location|truncatechars:15 }}
+                        </div>
+                        <span>{{ related.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
+    <div class="relative max-w-4xl max-h-full">
+        <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain rounded-2xl">
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white bg-black/50 backdrop-blur-sm rounded-full w-12 h-12 flex items-center justify-center hover:bg-black/70 transition-colors duration-300">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+    </div>
+</div>
+
+<!-- JavaScript Section -->
+<script>
+class ImageSlider {
+    constructor() {
+        this.currentSlide = 0;
+        this.totalSlides = document.querySelectorAll('.slider-image').length;
+        this.slider = document.getElementById('image-slider');
+        this.counter = document.getElementById('image-counter');
+        this.prevBtn = document.getElementById('prev-btn');
+        this.nextBtn = document.getElementById('next-btn');
+        
+        this.init();
+    }
+    
+    init() {
+        if (this.totalSlides <= 1) return;
+        
+        // Event listeners for navigation buttons
+        if (this.prevBtn) {
+            this.prevBtn.addEventListener('click', () => this.prevSlide());
+        }
+        if (this.nextBtn) {
+            this.nextBtn.addEventListener('click', () => this.nextSlide());
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') this.prevSlide();
+            if (e.key === 'ArrowRight') this.nextSlide();
+        });
+        
+        // Touch/swipe support
+        let startX = 0;
+        let endX = 0;
+        
+        this.slider.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+        });
+        
+        this.slider.addEventListener('touchend', (e) => {
+            endX = e.changedTouches[0].clientX;
+            this.handleSwipe();
+        });
+        
+        // Auto-play (optional)
+        // this.startAutoPlay();
+        
+        this.updateThumbnails();
+    }
+    
+    goToSlide(index) {
+        if (index < 0 || index >= this.totalSlides) return;
+        
+        this.currentSlide = index;
+        this.updateSlider();
+        this.updateCounter();
+        this.updateThumbnails();
+    }
+    
+    nextSlide() {
+        this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+        this.updateSlider();
+        this.updateCounter();
+        this.updateThumbnails();
+    }
+    
+    prevSlide() {
+        this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
+        this.updateSlider();
+        this.updateCounter();
+        this.updateThumbnails();
+    }
+    
+    updateSlider() {
+        const translateX = -this.currentSlide * 100;
+        this.slider.style.transform = `translateX(${translateX}%)`;
+    }
+    
+    updateCounter() {
+        if (this.counter) {
+            this.counter.textContent = this.currentSlide + 1;
+        }
+    }
+    
+    updateThumbnails() {
+        const thumbnails = document.querySelectorAll('.thumbnail-image');
+        thumbnails.forEach((thumb, index) => {
+            thumb.classList.remove('border-accent', 'scale-110');
+            thumb.classList.add('border-transparent');
+            
+            if (index === this.currentSlide) {
+                thumb.classList.remove('border-transparent');
+                thumb.classList.add('border-accent', 'scale-110');
+            }
+        });
+    }
+    
+    handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = startX - endX;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0) {
+                this.nextSlide();
+            } else {
+                this.prevSlide();
+            }
+        }
+    }
+    
+    startAutoPlay() {
+        setInterval(() => {
+            this.nextSlide();
+        }, 5000); // Change slide every 5 seconds
+    }
+}
+
+// Global function for thumbnail clicks
+function goToSlide(index) {
+    if (window.imageSlider) {
+        window.imageSlider.goToSlide(index);
+    }
+}
+
+// Modal functions
+function openImageModal() {
+    const currentImage = document.querySelector('.slider-image[data-index="' + (window.imageSlider ? window.imageSlider.currentSlide : 0) + '"]');
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    
+    modalImage.src = currentImage.src;
+    modalImage.alt = currentImage.alt;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    window.imageSlider = new ImageSlider();
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+    
+    // Close modal on background click
+    document.getElementById('imageModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeImageModal();
+        }
+    });
+    
+    // Status dropdown behavior
+    const statusDetails = document.querySelector('[data-status]');
+    if (statusDetails) {
+        statusDetails.addEventListener('toggle', function() {
+            const chevron = this.querySelector('.chevron');
+            if (this.open) {
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        });
+    }
+});
+</script>
+
+<!-- Enhanced Styles -->
+<style>
+/* Slider Styles */
+#image-slider {
+    display: flex;
+    width: calc(100% * var(--image-count, 1));
+}
+
+.slider-image {
+    min-width: 100%;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Smooth transitions */
+.thumbnail-image {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.thumbnail-image:hover {
+    transform: scale(1.05);
+}
+
+/* Status menu positioning */
+.status-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    min-width: 160px;
+}
+
+/* Animation delays */
+.animate-pulse {
+   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+   0%, 100% {
+       opacity: 1;
+   }
+   50% {
+       opacity: .5;
+   }
+}
+
+/* Modal animations */
+#imageModal {
+   animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+   from {
+       opacity: 0;
+   }
+   to {
+       opacity: 1;
+   }
+}
+
+/* Button hover effects */
+.transform {
+   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced shadows */
+.shadow-xl {
+   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Navigation arrows styling */
+#prev-btn, #next-btn {
+   transition: all 0.3s ease;
+   backdrop-filter: blur(8px);
+}
+
+#prev-btn:hover, #next-btn:hover {
+   transform: scale(1.1);
+   backdrop-filter: blur(12px);
+}
+
+/* Slider container */
+.slider-container {
+   position: relative;
+   overflow: hidden;
+}
+
+/* Status dropdown chevron animation */
+.chevron {
+   transition: transform 0.3s ease;
+}
+
+/* Seller management section styling */
+.seller-management {
+   background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 146, 60, 0.1) 100%);
+}
+
+/* Improved mobile responsiveness */
+@media (max-width: 640px) {
+   .grid-cols-1 {
+       grid-template-columns: repeat(1, minmax(0, 1fr));
+   }
+   
+   .text-4xl {
+       font-size: 2rem;
+       line-height: 2.5rem;
+   }
+   
+   #prev-btn, #next-btn {
+       padding: 8px;
+       width: 36px;
+       height: 36px;
+   }
+   
+   .thumbnail-image {
+       width: 60px;
+       height: 60px;
+   }
+   
+   /* Make status menu full width on mobile */
+   .status-menu {
+       left: 0;
+       right: 0;
+       min-width: auto;
+   }
+}
+
+/* Touch feedback for mobile */
+@media (hover: none) {
+   .thumbnail-image:active {
+       transform: scale(0.95);
+   }
+   
+   button:active {
+       transform: scale(0.95);
+   }
+}
+
+/* Focus styles for accessibility */
+button:focus,
+a:focus,
+summary:focus {
+   outline: 2px solid #3B82F6;
+   outline-offset: 2px;
+}
+
+/* Smooth scrolling for thumbnail gallery */
+.thumbnail-gallery {
+   scroll-behavior: smooth;
+   scrollbar-width: thin;
+   scrollbar-color: #CBD5E1 #F1F5F9;
+}
+
+.thumbnail-gallery::-webkit-scrollbar {
+   height: 6px;
+}
+
+.thumbnail-gallery::-webkit-scrollbar-track {
+   background: #F1F5F9;
+   border-radius: 3px;
+}
+
+.thumbnail-gallery::-webkit-scrollbar-thumb {
+   background: #CBD5E1;
+   border-radius: 3px;
+}
+
+.thumbnail-gallery::-webkit-scrollbar-thumb:hover {
+   background: #94A3B8;
+}
+
+/* Loading state for images */
+.slider-image {
+   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+   background-size: 200% 100%;
+   animation: loading 1.5s infinite;
+}
+
+.slider-image[src] {
+   background: none;
+   animation: none;
+}
+
+@keyframes loading {
+   0% {
+       background-position: 200% 0;
+   }
+   100% {
+       background-position: -200% 0;
+   }
+}
+
+/* Improved z-index management */
+.modal-overlay {
+   z-index: 50;
+}
+
+.dropdown-menu {
+   z-index: 20;
+}
+
+.image-controls {
+   z-index: 10;
+}
+
+/* Better button states */
+button:disabled {
+   opacity: 0.5;
+   cursor: not-allowed;
+}
+
+.status-link:hover {
+   background-color: rgba(59, 130, 246, 0.1);
+}
+
+.status-link.active {
+   background-color: rgba(59, 130, 246, 0.1);
+   color: #1D4ED8;
+}
+
+/* Improved card interactions */
+.listing-card {
+   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.listing-card:hover {
+   transform: translateY(-8px);
+   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Better gradient overlays */
+.gradient-overlay {
+   background: linear-gradient(
+       45deg,
+       rgba(59, 130, 246, 0.1) 0%,
+       rgba(147, 197, 253, 0.1) 100%
+   );
+}
+
+/* Enhanced focus indicators */
+.focus-ring:focus {
+   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* Image aspect ratio maintenance */
+.aspect-square {
+   aspect-ratio: 1 / 1;
+}
+
+.aspect-video {
+   aspect-ratio: 16 / 9;
+}
+
+/* Better text truncation */
+.truncate-multiline {
+   display: -webkit-box;
+   -webkit-line-clamp: 3;
+   -webkit-box-orient: vertical;
+   overflow: hidden;
+}
+</style>
+
+<!-- Additional JavaScript for enhanced functionality -->
+<script>
+// Enhanced Image Slider with additional features
+class EnhancedImageSlider extends ImageSlider {
+   constructor() {
+       super();
+       this.isPlaying = false;
+       this.autoPlayInterval = null;
+       this.touchStartX = 0;
+       this.touchStartY = 0;
+       this.isDragging = false;
+   }
+   
+   // Preload images for better performance
+   preloadImages() {
+       const images = document.querySelectorAll('.slider-image');
+       images.forEach(img => {
+           const imageLoader = new Image();
+           imageLoader.src = img.src;
+       });
+   }
+   
+   // Enhanced touch handling
+   setupTouchEvents() {
+       const slider = this.slider;
+       let startTime = 0;
+       
+       slider.addEventListener('touchstart', (e) => {
+           this.touchStartX = e.touches[0].clientX;
+           this.touchStartY = e.touches[0].clientY;
+           startTime = Date.now();
+           this.isDragging = true;
+           
+           // Stop auto-play when user interacts
+           this.pauseAutoPlay();
+       }, { passive: true });
+       
+       slider.addEventListener('touchmove', (e) => {
+           if (!this.isDragging) return;
+           
+           const deltaX = e.touches[0].clientX - this.touchStartX;
+           const deltaY = e.touches[0].clientY - this.touchStartY;
+           
+           // Prevent vertical scrolling if horizontal swipe is detected
+           if (Math.abs(deltaX) > Math.abs(deltaY)) {
+               e.preventDefault();
+           }
+       }, { passive: false });
+       
+       slider.addEventListener('touchend', (e) => {
+           if (!this.isDragging) return;
+           
+           const endX = e.changedTouches[0].clientX;
+           const endTime = Date.now();
+           const deltaX = this.touchStartX - endX;
+           const deltaTime = endTime - startTime;
+           const velocity = Math.abs(deltaX) / deltaTime;
+           
+           // Require minimum swipe distance and velocity
+           if (Math.abs(deltaX) > 50 && velocity > 0.3) {
+               if (deltaX > 0) {
+                   this.nextSlide();
+               } else {
+                   this.prevSlide();
+               }
+           }
+           
+           this.isDragging = false;
+           
+           // Resume auto-play after interaction
+           setTimeout(() => this.resumeAutoPlay(), 3000);
+       }, { passive: true });
+   }
+   
+   // Auto-play functionality
+   startAutoPlay(interval = 5000) {
+       if (this.totalSlides <= 1) return;
+       
+       this.autoPlayInterval = setInterval(() => {
+           this.nextSlide();
+       }, interval);
+       this.isPlaying = true;
+   }
+   
+   pauseAutoPlay() {
+       if (this.autoPlayInterval) {
+           clearInterval(this.autoPlayInterval);
+           this.autoPlayInterval = null;
+       }
+       this.isPlaying = false;
+   }
+   
+   resumeAutoPlay() {
+       if (!this.isPlaying && this.totalSlides > 1) {
+           this.startAutoPlay();
+       }
+   }
+   
+   // Lazy loading for better performance
+   setupLazyLoading() {
+       const images = document.querySelectorAll('.slider-image[data-src]');
+       const imageObserver = new IntersectionObserver((entries, observer) => {
+           entries.forEach(entry => {
+               if (entry.isIntersecting) {
+                   const img = entry.target;
+                   img.src = img.dataset.src;
+                   img.classList.remove('lazy');
+                   observer.unobserve(img);
+               }
+           });
+       });
+       
+       images.forEach(img => imageObserver.observe(img));
+   }
+   
+   // Initialize all enhanced features
+   init() {
+       super.init();
+       this.preloadImages();
+       this.setupTouchEvents();
+       this.setupLazyLoading();
+       
+       // Optional: Start auto-play (uncomment if desired)
+       // this.startAutoPlay();
+   }
+}
+
+// Status dropdown enhancement
+class StatusDropdown {
+   constructor() {
+       this.dropdown = document.querySelector('[data-status]');
+       this.init();
+   }
+   
+   init() {
+       if (!this.dropdown) return;
+       
+       // Close dropdown when clicking outside
+       document.addEventListener('click', (e) => {
+           if (!this.dropdown.contains(e.target)) {
+               this.dropdown.removeAttribute('open');
+           }
+       });
+       
+       // Handle status changes with loading states
+       const statusLinks = this.dropdown.querySelectorAll('.status-menu a');
+       statusLinks.forEach(link => {
+           link.addEventListener('click', (e) => {
+               e.preventDefault();
+               this.handleStatusChange(link);
+           });
+       });
+   }
+   
+   async handleStatusChange(link) {
+       const url = link.href;
+       const icon = link.querySelector('i');
+       const originalIcon = icon.className;
+       
+       // Show loading state
+       icon.className = 'fas fa-spinner fa-spin mr-2';
+       link.style.opacity = '0.7';
+       
+       try {
+           const response = await fetch(url, {
+               method: 'POST',
+               headers: {
+                   'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+               },
+           });
+           
+           if (response.ok) {
+               // Reload page to reflect changes
+               window.location.reload();
+           } else {
+               throw new Error('Network response was not ok');
+           }
+       } catch (error) {
+           console.error('Error updating status:', error);
+           // Restore original state
+           icon.className = originalIcon;
+           link.style.opacity = '1';
+           
+           // Show error message (you can customize this)
+           alert('Error updating status. Please try again.');
+       }
+   }
+}
+
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+   // Use enhanced slider instead of basic one
+   window.imageSlider = new EnhancedImageSlider();
+   window.statusDropdown = new StatusDropdown();
+   
+   // Initialize modal functionality
+   initializeModal();
+   
+   // Add smooth scrolling to thumbnail gallery
+   const thumbnailGallery = document.querySelector('.thumbnail-gallery');
+   if (thumbnailGallery) {
+       thumbnailGallery.classList.add('scroll-smooth');
+   }
+});
+
+// Modal functionality
+function initializeModal() {
+   const modal = document.getElementById('imageModal');
+   
+   // Keyboard navigation in modal
+   document.addEventListener('keydown', function(e) {
+       if (!modal.classList.contains('hidden')) {
+           switch(e.key) {
+               case 'Escape':
+                   closeImageModal();
+                   break;
+               case 'ArrowLeft':
+                   if (window.imageSlider) window.imageSlider.prevSlide();
+                   updateModalImage();
+                   break;
+               case 'ArrowRight':
+                   if (window.imageSlider) window.imageSlider.nextSlide();
+                   updateModalImage();
+                   break;
+           }
+       }
+   });
+   
+   // Update modal image when slider changes
+   function updateModalImage() {
+       const modalImage = document.getElementById('modalImage');
+       const currentSlide = window.imageSlider ? window.imageSlider.currentSlide : 0;
+       const currentImage = document.querySelector(`.slider-image[data-index="${currentSlide}"]`);
+       
+       if (currentImage && modalImage) {
+           modalImage.src = currentImage.src;
+       }
+   }
+}
+
+// Utility functions for better UX
+function showToast(message, type = 'info') {
+   // Create toast notification (you can style this as needed)
+   const toast = document.createElement('div');
+   toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ${
+       type === 'error' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+   }`;
+   toast.textContent = message;
+   
+   document.body.appendChild(toast);
+   
+   setTimeout(() => {
+       toast.remove();
+   }, 3000);
+}
+
+// Performance optimization: Debounce resize events
+function debounce(func, wait) {
+   let timeout;
+   return function executedFunction(...args) {
+       const later = () => {
+           clearTimeout(timeout);
+           func(...args);
+       };
+       clearTimeout(timeout);
+       timeout = setTimeout(later, wait);
+   };
+}
+
+// Handle responsive image sizing
+window.addEventListener('resize', debounce(() => {
+   if (window.imageSlider) {
+       window.imageSlider.updateSlider();
+   }
+}, 250));
+</script>
+{% endblock %}

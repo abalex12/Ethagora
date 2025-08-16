@@ -1,0 +1,27 @@
+{% if featured %}
+  {% for listing in featured %}
+    <a href="/listing/{{ listing.id }}/" 
+       class="group flex items-center space-x-4 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+       
+      <!-- Thumbnail -->
+      {% if listing.get_primary_image %}
+        <img src="{{ listing.get_primary_image.image.url }}" 
+             alt="{{ listing.title }}" 
+             class="w-16 h-16 rounded-lg object-cover group-hover:scale-105 transition-transform duration-300">
+      {% else %}
+        <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-colors duration-300">
+          <i class="fas fa-image text-gray-400 text-2xl group-hover:text-gray-500 transition-colors duration-300"></i>
+        </div>
+      {% endif %}
+
+      <!-- Listing Details -->
+      <div class="flex-1">
+        <h4 class="font-medium text-gray-900 truncate">{{ listing.title }}</h4>
+        <p class="text-sm text-gray-500">{{ listing.category }} • {{ listing.location }}</p>
+        <p class="font-bold text-green-600">
+          {{ listing.price }}
+        </p>
+      </div>
+    </a>
+  {% endfor %}    
+{% endif %}
