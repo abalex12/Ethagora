@@ -128,30 +128,5 @@
   {% endif %}
 </div>
 
-<style>
-/* Truncate utility (if Tailwind plugin not enabled) */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 
-/* Remove native details marker & keep our icon */
-details > summary::-webkit-details-marker { display: none; }
-details > summary::marker { content: ""; }
-
-/* Rotate chevron when open */
-details[open] .chevron { transform: rotate(180deg); }
-
-/* Menu animation */
-.status-menu {
-  animation: status-pop 120ms ease-out;
-}
-@keyframes status-pop {
-  from { transform: scale(0.98); opacity: 0; }
-  to   { transform: scale(1);    opacity: 1; }
-}
-
-</style>
 {% endblock %}

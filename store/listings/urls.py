@@ -25,4 +25,6 @@ urlpatterns = [
     # AJAX endpoints
     path('api/subcategories/', views.get_subcategories, name='get_subcategories'),
     path('api/filter-listings/', views.filter_listings, name='filter_listings'),
+    path('search-suggestions/', views.search_suggestions, name='search_suggestions'),
+
 ]

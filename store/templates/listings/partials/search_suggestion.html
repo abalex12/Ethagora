@@ -1,0 +1,364 @@
+<div class="relative max-w-2xl mx-auto">
+    <div class="relative">
+        <input 
+            type="text" 
+            id="search-input"
+            placeholder="Search for items, categories..." 
+            class="w-full px-4 py-4 pl-12 pr-12 text-gray-900 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none shadow-sm transition-all duration-200 text-base"
+            autocomplete="off"
+        >
+        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+            <i class="fas fa-search text-gray-400 text-sm"></i>
+        </div>
+        <div id="loading-spinner" class="absolute inset-y-0 right-0 flex items-center pr-4 hidden">
+            <div class="animate-spin h-5 w-5 border-2 border-indigo-500 border-t-transparent rounded-full"></div>
+        </div>
+    </div>
+    
+    <!-- Enhanced Suggestions Dropdown -->
+    <div id="search-suggestions" class="absolute z-50 w-full mt-2 bg-white/95 backdrop-blur-lg border border-gray-200/80 rounded-xl shadow-xl hidden overflow-hidden">
+        <div class="p-2">
+            <div class="text-xs font-medium text-gray-500 uppercase tracking-wide px-3 py-2 mb-1">
+                Suggestions
+            </div>
+            <div id="suggestions-list" class="max-h-80 overflow-y-auto">
+                <!-- Suggestions will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Enhanced Styling */
+.suggestion-item {
+    transition: all 0.15s ease-in-out;
+    border-radius: 8px;
+}
+
+.suggestion-item:hover {
+    background-color: #f8fafc;
+    transform: translateX(2px);
+}
+
+.suggestion-item.focused {
+    background-color: #eef2ff;
+    border-color: #c7d2fe;
+    box-shadow: 0 0 0 1px #c7d2fe;
+}
+
+#search-suggestions {
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+        0 10px 10px -5px rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(0, 0, 0, 0.05);
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Suggestion icons with better styling */
+.suggestion-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.suggestion-icon.category {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.suggestion-icon.subcategory {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.suggestion-icon.listing {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+/* Custom scrollbar for suggestions */
+#suggestions-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+#suggestions-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#suggestions-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 2px;
+}
+
+#suggestions-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    #search-suggestions {
+        margin-left: -1rem;
+        margin-right: -1rem;
+        width: calc(100% + 2rem);
+        border-radius: 16px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const suggestionsContainer = document.getElementById('search-suggestions');
+    const suggestionsList = document.getElementById('suggestions-list');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    let searchTimeout;
+    let currentFocus = -1;
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+            hideSuggestions();
+        }
+    });
+
+    // Handle input events
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        currentFocus = -1;
+        
+        clearTimeout(searchTimeout);
+        
+        if (query.length >= 2) {
+            showLoading();
+            
+            searchTimeout = setTimeout(() => {
+                fetchSuggestions(query);
+            }, 300);
+        } else {
+            hideSuggestions();
+        }
+    });
+
+    // Enhanced keyboard navigation
+    searchInput.addEventListener('keydown', function(e) {
+        const suggestions = suggestionsList.querySelectorAll('.suggestion-item');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            currentFocus = Math.min(currentFocus + 1, suggestions.length - 1);
+            updateFocus(suggestions);
+            scrollToFocused();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            currentFocus = Math.max(currentFocus - 1, -1);
+            updateFocus(suggestions);
+            scrollToFocused();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (currentFocus >= 0 && suggestions[currentFocus]) {
+                suggestions[currentFocus].click();
+            } else {
+                // Submit search if no suggestion is focused
+                performSearch(searchInput.value);
+            }
+        } else if (e.key === 'Escape') {
+            hideSuggestions();
+            searchInput.blur();
+        }
+    });
+
+    function fetchSuggestions(query) {
+        fetch(`{% url 'search_suggestions' %}?q=${encodeURIComponent(query)}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            displaySuggestions(data, query);
+        })
+        .catch(error => {
+            console.error('Error fetching suggestions:', error);
+            hideLoading();
+            hideSuggestions();
+        });
+    }
+
+    function displaySuggestions(data, query) {
+        if (!data.suggestions || data.suggestions.length === 0) {
+            displayNoResults(query);
+            return;
+        }
+
+        let html = '';
+        
+        data.suggestions.forEach((suggestion, index) => {
+            let iconClass = getIconClass(suggestion.type);
+            let highlightedName = highlightMatch(suggestion.name, query);
+            
+            html += `
+                <div class="suggestion-item flex items-center px-3 py-3 hover:bg-gray-50 cursor-pointer rounded-lg mb-1 transition-all duration-150 border border-transparent" 
+                     data-url="${suggestion.url}" 
+                     data-index="${index}">
+                    <div class="suggestion-icon ${suggestion.type} mr-3">
+                        <i class="fas ${iconClass}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-medium text-gray-900 truncate">${highlightedName}</div>
+                        <div class="text-sm text-gray-500 capitalize">${suggestion.type_display}</div>
+                    </div>
+                    <div class="flex items-center ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i class="fas fa-arrow-right text-gray-300 text-xs"></i>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Add "Search for" option at the top
+        html = `
+            <div class="suggestion-item flex items-center px-3 py-3 hover:bg-gray-50 cursor-pointer rounded-lg mb-2 border border-dashed border-gray-200 bg-gray-50/50" 
+                 data-search="${query}">
+                <div class="suggestion-icon listing mr-3">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="font-medium text-gray-900">Search for "${query}"</div>
+                    <div class="text-sm text-gray-500">See all results</div>
+                </div>
+            </div>
+        ` + html;
+
+        suggestionsList.innerHTML = html;
+        showSuggestions();
+        attachClickHandlers();
+    }
+
+    function displayNoResults(query) {
+        const html = `
+            <div class="suggestion-item flex items-center px-3 py-4 rounded-lg border border-dashed border-gray-200 cursor-pointer hover:bg-gray-50" 
+                 data-search="${query}">
+                <div class="suggestion-icon listing mr-3">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="font-medium text-gray-900">Search for "${query}"</div>
+                    <div class="text-sm text-gray-500">No suggestions found - see all results</div>
+                </div>
+            </div>
+        `;
+        
+        suggestionsList.innerHTML = html;
+        showSuggestions();
+        attachClickHandlers();
+    }
+
+    function attachClickHandlers() {
+        suggestionsList.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (this.dataset.url) {
+                    window.location.href = this.dataset.url;
+                } else if (this.dataset.search) {
+                    performSearch(this.dataset.search);
+                }
+            });
+        });
+    }
+
+    function getIconClass(type) {
+        switch(type) {
+            case 'category': return 'fa-layer-group';
+            case 'subcategory': return 'fa-folder-open';
+            case 'listing': return 'fa-tag';
+            default: return 'fa-search';
+        }
+    }
+
+    function highlightMatch(text, query) {
+        if (!query) return text;
+        
+        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<span class="font-semibold text-indigo-600 bg-indigo-50 px-1 rounded">$1</span>');
+    }
+
+    function updateFocus(suggestions) {
+        suggestions.forEach((item, index) => {
+            if (index === currentFocus) {
+                item.classList.add('focused');
+                item.classList.remove('border-transparent');
+                item.classList.add('border-indigo-200');
+            } else {
+                item.classList.remove('focused');
+                item.classList.add('border-transparent');
+                item.classList.remove('border-indigo-200');
+            }
+        });
+    }
+
+    function scrollToFocused() {
+        if (currentFocus >= 0) {
+            const focusedItem = suggestionsList.children[currentFocus];
+            if (focusedItem) {
+                focusedItem.scrollIntoView({
+                    block: 'nearest',
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }
+
+    function performSearch(query) {
+        if (query.trim()) {
+            window.location.href = `{% url 'listings' %}?q=${encodeURIComponent(query.trim())}`;
+        }
+    }
+
+    function showSuggestions() {
+        suggestionsContainer.classList.remove('hidden');
+    }
+
+    function hideSuggestions() {
+        suggestionsContainer.classList.add('hidden');
+        currentFocus = -1;
+    }
+
+    function showLoading() {
+        loadingSpinner.classList.remove('hidden');
+    }
+
+    function hideLoading() {
+        loadingSpinner.classList.add('hidden');
+    }
+
+    // Focus enhancement
+    searchInput.addEventListener('focus', function() {
+        if (this.value.length >= 2) {
+            showSuggestions();
+        }
+    });
+});
+</script>

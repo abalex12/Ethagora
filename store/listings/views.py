@@ -216,6 +216,7 @@ def filter_listings(request):
         category = form.cleaned_data.get('category')
         subcategory = form.cleaned_data.get('subcategory')
         condition = form.cleaned_data.get('condition')
+        location = form.cleaned_data.get('city')
         min_price = form.cleaned_data.get('min_price')
         max_price = form.cleaned_data.get('max_price')
         sort_by = form.cleaned_data.get('sort_by')
@@ -230,10 +231,13 @@ def filter_listings(request):
             listings = listings.filter(subcategory=subcategory)
         if condition:
             listings = listings.filter(condition=condition)
+        if location:
+            listing = listing.filter(location=location)
         if min_price:
             listings = listings.filter(price__gte=min_price)
         if max_price:
             listings = listings.filter(price__lte=max_price)
+        
             
         # Sorting
         if sort_by == 'oldest':
@@ -260,3 +264,131 @@ def filter_listings(request):
         'has_previous': listings_page.has_previous(),
         'total_count': paginator.count,
     })
+from django.views.decorators.cache import cache_page
+
+import json
+from django.http import JsonResponse
+from django.db.models import Q
+from django.urls import reverse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.cache import cache_page
+
+
+@require_http_methods(["GET"])
+def search_suggestions(request):
+    """
+    AJAX view to provide search suggestions based on categories, subcategories, and products
+    """
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    query = request.GET.get('q', '').strip()
+    
+    if len(query) < 2:
+        return JsonResponse({'suggestions': []})
+    
+    suggestions = []
+    
+    try:
+        # Search categories - Remove is_active filter if it doesn't exist
+        try:
+            categories = Category.objects.filter(
+                name__icontains=query
+            ).distinct()[:4]
+        except:
+            # Fallback if is_active field doesn't exist
+            categories = Category.objects.filter(
+                name__icontains=query
+            ).distinct()[:4]
+        
+        for category in categories:
+            suggestions.append({
+                'name': category.name,
+                'type': 'category',
+                'type_display': 'Category',
+                'url': f"{reverse('listings')}?category={category.id}",
+                'category_id': category.id,
+                'subcategory_id': None
+            })
+        
+        # Search subcategories - Remove is_active filters if they don't exist
+        try:
+            subcategories = SubCategory.objects.filter(
+                name__icontains=query
+            ).select_related('category').distinct()[:5]
+        except:
+            # Fallback if is_active field doesn't exist
+            subcategories = SubCategory.objects.filter(
+                name__icontains=query
+            ).select_related('category').distinct()[:5]
+        
+        for subcategory in subcategories:
+            suggestions.append({
+                'name': f"{subcategory.name}",
+                'type': 'subcategory', 
+                'type_display': f"in {subcategory.category.name}",
+                'url': f"{reverse('listings')}?category={subcategory.category.id}&subcategory={subcategory.id}",
+                'category_id': subcategory.category.id,
+                'subcategory_id': subcategory.id
+            })
+        
+        # Search product names (from listings) - if Listing model exists
+        try:
+            products = Listing.objects.filter(
+                title__icontains=query
+            ).select_related('category', 'subcategory').distinct()[:3]
+            
+            for product in products:
+                url = f"{reverse('listings')}?category={product.category.id}"
+                if hasattr(product, 'subcategory') and product.subcategory:
+                    url += f"&subcategory={product.subcategory.id}"
+                
+                suggestions.append({
+                    'name': product.title,
+                    'type': 'product',
+                    'type_display': f"Product in {product.category.name}",
+                    'url': url,
+                    'category_id': product.category.id,
+                    'subcategory_id': product.subcategory.id if hasattr(product, 'subcategory') and product.subcategory else None
+                })
+        except:
+            # If Listing model doesn't exist or has different structure, skip products
+            pass
+        
+        # Remove duplicates based on URL and limit results
+        unique_suggestions = []
+        seen_urls = set()
+        
+        for suggestion in suggestions:
+            if suggestion['url'] not in seen_urls:
+                unique_suggestions.append(suggestion)
+                seen_urls.add(suggestion['url'])
+        
+        # Limit to 8 suggestions total
+        unique_suggestions = unique_suggestions[:8]
+        
+        # Debug: Add some test data if no suggestions found
+        if not unique_suggestions and query:
+            # For debugging - you can remove this after confirming it works
+            unique_suggestions.append({
+                'name': f"Search results for '{query}'",
+                'type': 'search',
+                'type_display': 'General Search',
+                'url': f"{reverse('listings')}?search={query}",
+                'category_id': None,
+                'subcategory_id': None
+            })
+        
+        return JsonResponse({
+            'suggestions': unique_suggestions,
+            'total': len(unique_suggestions),
+            'query': query  # For debugging
+        })
+        
+    except Exception as e:
+        # Better error handling for debugging
+        return JsonResponse({
+            'suggestions': [],
+            'error': str(e),
+            'query': query
+        })

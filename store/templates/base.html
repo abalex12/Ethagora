@@ -139,8 +139,6 @@
         <div id="mobile-menu" class="lg:hidden hidden bg-white/98 backdrop-blur-lg border-t border-gray-100">
             <div class="px-4 pt-4 pb-4 space-y-3">
                 <!-- Mobile Search Bar -->
-                {% include 'listings/partials/search_filter.html' %}
-
                 <!-- Navigation Links -->
                 <a href="{% url 'home' %}" class="flex items-center space-x-3 text-gray-700 hover:text-primary hover:bg-gray-50 px-4 py-3 rounded-xl transition-all group">
                     <div class="w-10 h-10 bg-gray-100 group-hover:bg-accent group-hover:text-white rounded-lg flex items-center justify-center transition-all">
@@ -533,5 +531,14 @@
             });
         });
     </script>
+<script>
+    window.LISTING_CONTEXT = {
+        selectedCategory: "{{ form.category.value|default:'' }}",
+        selectedSubcategory: "{{ form.subcategory.value|default:'' }}"
+    };
+</script>
+
+<script src="{% static 'js/listing.js' %}"></script>
+
 </body>
 </html>
