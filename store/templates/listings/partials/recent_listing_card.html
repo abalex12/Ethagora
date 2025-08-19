@@ -20,24 +20,26 @@
             <a href="{{ listing.get_absolute_url }}" >
             <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-accent/30 transform hover:-translate-y-2">
                 <!-- Image Container -->
-                <div class="relative overflow-hidden">
-                    {% if listing.get_primary_image %}
-                        <img src="{{ listing.get_primary_image.image.url }}" 
-                             alt="{{ listing.title }}" 
-                             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
-                    {% else %}
-                        <div class="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-colors duration-300">
-                            <i class="fas fa-image text-gray-400 text-4xl group-hover:text-gray-500 transition-colors duration-300"></i>
-                        </div>
-                    {% endif %}
-                    
-                    <!-- Condition Badge -->
-                    <div class="absolute top-3 right-3">
-                        <span class="px-3 py-1 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 rounded-full shadow-sm">
-                            {{ listing.get_condition_display }}
-                        </span>
-                    </div>
-                </div>
+<div class="relative overflow-hidden">
+    {% if listing.get_primary_image %}
+        <img src="{{ listing.get_primary_image.image.url }}?c_fill,w=400,h=200,q_auto,f_auto"
+             alt="{{ listing.title }}" 
+             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+             loading="lazy">
+    {% else %}
+        <div class="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-colors duration-300">
+            <i class="fas fa-image text-gray-400 text-4xl group-hover:text-gray-500 transition-colors duration-300"></i>
+        </div>
+    {% endif %}
+
+    <!-- Condition Badge -->
+    <div class="absolute top-3 right-3">
+        <span class="px-3 py-1 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 rounded-full shadow-sm">
+            {{ listing.get_condition_display }}
+        </span>
+    </div>
+</div>
+
                 
                 <!-- Content -->
                 <div class="p-5">

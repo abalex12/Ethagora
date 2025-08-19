@@ -3,11 +3,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Ethagora{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>{% block title %}Ethagora - Buy & Sell Quality Items Online | Local Marketplace{% endblock %}</title>
+    <meta name="description" content="{% block description %}Discover amazing deals on Ethagora - your trusted local marketplace. Buy and sell quality items safely. Connect with your community and turn unused items into cash.{% endblock %}">
+    <meta name="keywords" content="{% block keywords %}marketplace, buy, sell, local deals, online shopping, second hand, used items, community marketplace{% endblock %}">
+    <meta name="author" content="Ethagora">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Ethagora - Buy & Sell Quality Items Online{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Your trusted platform for buying and selling quality items. Connect with your community and discover amazing deals.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% static 'images/og-image.jpg' %}{% endblock %}">
+    <meta property="og:site_name" content="Ethagora">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{% block twitter_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta property="twitter:title" content="{% block twitter_title %}Ethagora - Buy & Sell Quality Items Online{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}Your trusted platform for buying and selling quality items. Connect with your community and discover amazing deals.{% endblock %}">
+    <meta property="twitter:image" content="{% block twitter_image %}{% static 'images/twitter-image.jpg' %}{% endblock %}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'logo.jpg' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'logo.jpg' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'logo.jpg' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'logo.jpg' %}">
+    <link rel="manifest" href="{% static 'images/site.webmanifest' %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{% block canonical %}{{ request.build_absolute_uri }}{% endblock %}">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#1f2937">
+    <meta name="msapplication-TileColor" content="#1f2937">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    
+    <!-- Schema.org structured data -->
+    {% block structured_data %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Ethagora",
+        "url": "{{ request.build_absolute_uri }}",
+        "description": "Your trusted platform for buying and selling quality items online",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "{{ request.build_absolute_uri }}listings/?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        },
+        "sameAs": [
+            "https://facebook.com/ethagora",
+            "https://twitter.com/ethagora",
+            "https://instagram.com/ethagora"
+        ]
+    }
+    </script>
+    {% endblock %}
+    
     <script>
         tailwind.config = {
             theme: {
@@ -319,9 +383,9 @@
                 <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                     <p class="text-gray-500 text-sm">&copy; 2025 Ethagora. All rights reserved.</p>
                     <p class="text-gray-500 text-sm flex items-center space-x-1">
-                        <span>Made with</span>
+                        <span>Made BY</span>
                         <i class="fas fa-heart text-red-500"></i>
-                        <span>for the community</span>
+                        <span>Abalex</span>
                     </p>
                 </div>
             </div>

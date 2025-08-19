@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import User, Listing, ListingImage, Category, SubCategory
+from cloudinary.forms import CloudinaryFileField 
 
 
 class SellerSignUpForm(UserCreationForm):
@@ -51,18 +52,38 @@ class ListingForm(forms.ModelForm):
             self.fields['subcategory'].queryset = self.instance.category.subcategories.all()
             self.fields['subcategory'].widget.attrs.pop('disabled', None)
 
-# Formset for images
+class ListingImageForm(forms.ModelForm):
+    image = CloudinaryFileField(
+        options={
+            'folder': 'listings',
+            'transformation': {
+                'quality': 'auto:good',
+                'fetch_format': 'auto',
+                'width': 800,
+                'height': 600,
+                'crop': 'limit'
+            }
+        }
+    )
+    
+    class Meta:
+        model = ListingImage
+        fields = ['image', 'is_primary']
+        widgets = {
+            'is_primary': forms.CheckboxInput(attrs={
+                'class': 'is-primary-checkbox'
+            })
+        }
+
+# Updated FormSet
 ListingImageFormSet = inlineformset_factory(
     Listing,
     ListingImage,
+    form=ListingImageForm,
     fields=('image', 'is_primary'),
     extra=1,
     can_delete=True,
     widgets={
-        'image': forms.FileInput(attrs={
-            'accept': 'image/*',
-            'class': 'hidden image-upload-input'
-        }),
         'is_primary': forms.CheckboxInput(attrs={
             'class': 'is-primary-checkbox'
         })

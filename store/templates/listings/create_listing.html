@@ -202,17 +202,22 @@
                             <div class="image-form-group bg-gray-50/50 border-2 border-dashed border-gray-200 rounded-2xl p-4 hover:border-blue-300 hover:bg-blue-50/30 transition-all {% if form.instance.pk %}existing-image border-solid bg-white{% else %}new-image{% endif %}"
                                  data-form-index="{{ forloop.counter0 }}">
                                 {{ form.id }} {{ form.listing }}
-                                
+                              
                                 <!-- Image Preview -->
+
                                 <div class="image-preview w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden flex items-center justify-center mb-4 group cursor-pointer">
-                                    {% if form.instance.image %}
-                                        <img src="{{ form.instance.image.url }}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                    {% else %}
-                                        <div class="text-center text-gray-400">
-                                            <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
-                                            <p class="text-sm">Click to upload</p>
-                                        </div>
-                                    {% endif %}
+                                {% if form.instance.image %}
+                                    <img 
+                                        src="{{ form.instance.get_thumbnail_url }}" 
+                                        class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                        loading="lazy"
+                                    >
+                                {% else %}
+                                    <div class="text-center text-gray-400">
+                                        <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
+                                        <p class="text-sm">Click to upload</p>
+                                    </div>
+                                {% endif %}
                                 </div>
 
                                 <!-- Controls -->

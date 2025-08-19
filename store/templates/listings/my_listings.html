@@ -22,7 +22,12 @@
       <div class="w-full sm:w-1/4 h-48 sm:h-auto sm:min-w-[200px] bg-gray-100">
         <a href="{{ listing.get_absolute_url }}" class="block h-full">
           {% if listing.get_primary_image %}
-            <img src="{{ listing.get_primary_image.image.url }}" alt="{{ listing.title }}" class="object-cover w-full h-full">
+            <img 
+              src="{{ listing.get_primary_image.image.url }}?c_fill,w=400,h=300,q_auto,f_auto" 
+              alt="{{ listing.title }}" 
+              class="object-cover w-full h-full" 
+              loading="lazy"
+            >
           {% else %}
             <div class="flex items-center justify-center h-full text-gray-300">
               <i class="fas fa-image text-5xl"></i>
@@ -30,6 +35,7 @@
           {% endif %}
         </a>
       </div>
+
 
       <!-- Content -->
       <div class="flex-1 p-4 flex flex-col">
