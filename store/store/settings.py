@@ -18,7 +18,8 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=Csv())
 CSRF_TRUSTED_ORIGINS = [
     "https://ethagora.up.railway.app",
 ]
-# Application definition
+
+# Applications
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -74,6 +76,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'store.wsgi.application'
 
+# Database
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get("DATABASE_URL")  
@@ -105,19 +108,13 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-import os
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-
-# -------- Cloudinary (MEDIA) --------
+# Cloudinary configuration
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
     "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
     "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
 }
 
-# Cloudinary configuration
 cloudinary.config(
     cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
     api_key=CLOUDINARY_STORAGE['API_KEY'],
@@ -125,23 +122,19 @@ cloudinary.config(
     secure=True
 )
 
-# Media files storage
+# Media files
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+MEDIA_URL = None
+MEDIA_ROOT = None
 
-# For Cloudinary, you don't need MEDIA_URL and MEDIA_ROOT
-# Cloudinary serves files with absolute URLs
-# Only set these if you need them for local development fallback
-MEDIA_URL = None  # Let Cloudinary handle URLs
-MEDIA_ROOT = None  # Not needed with Cloudinary
-
-# --- Static files ---
+# Static files
 USE_CLOUDINARY_FOR_STATIC = os.getenv("USE_CLOUDINARY_FOR_STATIC", "False").lower() == "true"
 
 if USE_CLOUDINARY_FOR_STATIC:
     STATICFILES_STORAGE = "cloudinary_storage.storage.StaticHashedCloudinaryStorage"
-    # Don't set STATIC_URL manually - let Cloudinary handle it
     STATIC_URL = None
 else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     STATIC_URL = "/static/"
     STATICFILES_DIRS = [BASE_DIR / "static"]
     STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -160,7 +153,7 @@ AUTH_USER_MODEL = 'listings.User'
 
 SITE_ID = 1
 
-# Google OAuth
+# OAuth providers
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
