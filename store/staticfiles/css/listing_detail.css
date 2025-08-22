@@ -1,0 +1,267 @@
+
+/* Slider Styles */
+#image-slider {
+    display: flex;
+    width: calc(100% * var(--image-count, 1));
+}
+
+.slider-image {
+    min-width: 100%;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Smooth transitions */
+.thumbnail-image {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.thumbnail-image:hover {
+    transform: scale(1.05);
+}
+
+/* Status menu positioning */
+.status-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    min-width: 160px;
+}
+
+/* Animation delays */
+.animate-pulse {
+   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+   0%, 100% {
+       opacity: 1;
+   }
+   50% {
+       opacity: .5;
+   }
+}
+
+/* Modal animations */
+#imageModal {
+   animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+   from {
+       opacity: 0;
+   }
+   to {
+       opacity: 1;
+   }
+}
+
+/* Button hover effects */
+.transform {
+   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced shadows */
+.shadow-xl {
+   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Navigation arrows styling */
+#prev-btn, #next-btn {
+   transition: all 0.3s ease;
+   backdrop-filter: blur(8px);
+}
+
+#prev-btn:hover, #next-btn:hover {
+   transform: scale(1.1);
+   backdrop-filter: blur(12px);
+}
+
+/* Slider container */
+.slider-container {
+   position: relative;
+   overflow: hidden;
+}
+
+/* Status dropdown chevron animation */
+.chevron {
+   transition: transform 0.3s ease;
+}
+
+/* Seller management section styling */
+.seller-management {
+   background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 146, 60, 0.1) 100%);
+}
+
+/* Improved mobile responsiveness */
+@media (max-width: 640px) {
+   .grid-cols-1 {
+       grid-template-columns: repeat(1, minmax(0, 1fr));
+   }
+   
+   .text-4xl {
+       font-size: 2rem;
+       line-height: 2.5rem;
+   }
+   
+   #prev-btn, #next-btn {
+       padding: 8px;
+       width: 36px;
+       height: 36px;
+   }
+   
+   .thumbnail-image {
+       width: 60px;
+       height: 60px;
+   }
+   
+   /* Make status menu full width on mobile */
+   .status-menu {
+       left: 0;
+       right: 0;
+       min-width: auto;
+   }
+}
+
+/* Touch feedback for mobile */
+@media (hover: none) {
+   .thumbnail-image:active {
+       transform: scale(0.95);
+   }
+   
+   button:active {
+       transform: scale(0.95);
+   }
+}
+
+/* Focus styles for accessibility */
+button:focus,
+a:focus,
+summary:focus {
+   outline: 2px solid #3B82F6;
+   outline-offset: 2px;
+}
+
+/* Smooth scrolling for thumbnail gallery */
+.thumbnail-gallery {
+   scroll-behavior: smooth;
+   scrollbar-width: thin;
+   scrollbar-color: #CBD5E1 #F1F5F9;
+}
+
+.thumbnail-gallery::-webkit-scrollbar {
+   height: 6px;
+}
+
+.thumbnail-gallery::-webkit-scrollbar-track {
+   background: #F1F5F9;
+   border-radius: 3px;
+}
+
+.thumbnail-gallery::-webkit-scrollbar-thumb {
+   background: #CBD5E1;
+   border-radius: 3px;
+}
+
+.thumbnail-gallery::-webkit-scrollbar-thumb:hover {
+   background: #94A3B8;
+}
+
+/* Loading state for images */
+.slider-image {
+   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+   background-size: 200% 100%;
+   animation: loading 1.5s infinite;
+}
+
+.slider-image[src] {
+   background: none;
+   animation: none;
+}
+
+@keyframes loading {
+   0% {
+       background-position: 200% 0;
+   }
+   100% {
+       background-position: -200% 0;
+   }
+}
+
+/* Improved z-index management */
+.modal-overlay {
+   z-index: 50;
+}
+
+.dropdown-menu {
+   z-index: 20;
+}
+
+.image-controls {
+   z-index: 10;
+}
+
+/* Better button states */
+button:disabled {
+   opacity: 0.5;
+   cursor: not-allowed;
+}
+
+.status-link:hover {
+   background-color: rgba(59, 130, 246, 0.1);
+}
+
+.status-link.active {
+   background-color: rgba(59, 130, 246, 0.1);
+   color: #1D4ED8;
+}
+
+/* Improved card interactions */
+.listing-card {
+   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.listing-card:hover {
+   transform: translateY(-8px);
+   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Better gradient overlays */
+.gradient-overlay {
+   background: linear-gradient(
+       45deg,
+       rgba(59, 130, 246, 0.1) 0%,
+       rgba(147, 197, 253, 0.1) 100%
+   );
+}
+
+/* Enhanced focus indicators */
+.focus-ring:focus {
+   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* Image aspect ratio maintenance */
+.aspect-square {
+   aspect-ratio: 1 / 1;
+}
+
+.aspect-video {
+   aspect-ratio: 16 / 9;
+}
+
+/* Better text truncation */
+.truncate-multiline {
+   display: -webkit-box;
+   -webkit-line-clamp: 3;
+   -webkit-box-orient: vertical;
+   overflow: hidden;
+}
+
