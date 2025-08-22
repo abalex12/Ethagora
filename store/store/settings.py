@@ -134,11 +134,12 @@ if USE_CLOUDINARY_FOR_STATIC:
     STATICFILES_STORAGE = "cloudinary_storage.storage.StaticHashedCloudinaryStorage"
     STATIC_URL = None
 else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     STATIC_URL = "/static/"
-    STATICFILES_DIRS = [BASE_DIR / "static"]
-    STATIC_ROOT = BASE_DIR / "staticfiles"
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+    
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Crispy Forms
