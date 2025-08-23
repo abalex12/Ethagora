@@ -161,6 +161,13 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': config("GOOGLE_CLIENT_ID"),
             'secret': config("GOOGLE_CLIENT_SECRET"),
             'key': config("GOOGLE_API_KEY", default=""),
+        },
+        'AUTH_PARAMS': {
+            'prompt':'consent'
         }
     }
 }
+
+SOCIALACCOUNT_LOGIN_ON_GET=True
+SOCIALACCOUNT_AUTO_SIGNUP=True
+ACCOUNT_UNIQUE_EMAIL=True
