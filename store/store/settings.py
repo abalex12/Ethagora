@@ -162,6 +162,10 @@ SOCIALACCOUNT_PROVIDERS = {
             'secret': config("GOOGLE_CLIENT_SECRET"),
             'key': config("GOOGLE_API_KEY", default=""),
         },
+        'SCOPE':[
+            'profile',
+            'email'
+        ],
         'AUTH_PARAMS': {
             'prompt':'consent'
         }
