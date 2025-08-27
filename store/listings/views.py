@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login,get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
@@ -11,6 +11,126 @@ from .models import Listing, Category, SubCategory, ListingImage
 from .forms import SellerSignUpForm, ListingForm, ListingSearchForm
 from .forms import ListingImageFormSet
 
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+
+# views.py
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.http import HttpResponseBadRequest
+from django.contrib.auth.decorators import login_required
+from .email_services import EmailService
+
+
+User = get_user_model()
+
+def signup(request):
+    """User registration with email verification"""
+    if request.method == 'POST':
+        form = SellerSignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = True  # User can login but email not verified
+            user.save()
+            
+            # Send welcome and verification emails
+            EmailService.send_welcome_email(user)
+            login(request, user)
+            messages.success(request, 'Registration successful! Please complete your Profile.')
+            return redirect('home')
+    else:
+        form = SellerSignUpForm()
+    
+    return render(request, 'registration/signup.html', {'form': form})
+
+
+@login_required
+def complete_profile(request):
+    if request.method == 'POST':
+        user = request.user
+        user.telegram_username = request.POST.get('telegram_username', '').strip()
+        user.phone = request.POST.get('phone', '').strip()
+        user.location = request.POST.get('location', '').strip()
+        user.save()
+        EmailService.send_verification_email(user, request)
+        messages.success(request, 'Profile completed successfully!')
+        return redirect('home') 
+    
+    return render(request, 'account/complete_profile.html')
+
+
+def verify_email(request, uidb64, token):
+    """Verify email address"""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        user.email_verified = True
+        user.save()
+        messages.success(request, 'Email verified successfully!')
+        return redirect('home')
+    else:
+        messages.error(request, 'Invalid verification link.')
+        return redirect('home')
+
+@require_http_methods(["GET", "POST"])
+def password_reset_request(request):
+    """Request password reset"""
+    if request.method == 'POST':
+        form = PasswordResetForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            try:
+                user = User.objects.get(email=email)
+                EmailService.send_password_reset_email(user, request)
+                messages.success(request, 'Password reset email sent!')
+                return redirect('login')
+            except User.DoesNotExist:
+                messages.error(request, 'No user found with this email address.')
+    else:
+        form = PasswordResetForm()
+    
+    return render(request, 'registration/password_reset_form.html', {'form': form})
+
+def password_reset_confirm(request, uidb64, token):
+    """Confirm password reset"""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            form = SetPasswordForm(user, request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Password reset successful!')
+                return redirect('login')
+        else:
+            form = SetPasswordForm(user)
+        
+        return render(request, 'registration/password_reset_confirm.html', {'form': form})
+    else:
+        messages.error(request, 'Invalid reset link.')
+        return redirect('password-reset')
+
+@login_required
+def resend_verification(request):
+    """Resend email verification"""
+    if not request.user.email_verified:
+        EmailService.send_verification_email(request.user, request)
+        messages.success(request, 'Verification email sent!')
+    else:
+        messages.info(request, 'Your email is already verified.')
+    
+    return redirect('home')  
 
 def home(request):
     # Get recent listings
@@ -26,17 +146,17 @@ def home(request):
     return render(request, 'listings/home.html', context)
 
 
-def signup(request):
-    if request.method == 'POST':
-        form = SellerSignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('home')
-    else:
-        form = SellerSignUpForm()
-    return render(request, 'registration/signup.html', {'form': form})
+# def signup(request):
+#     if request.method == 'POST':
+#         form = SellerSignUpForm(request.POST)
+#         if form.is_valid():
+#             user = form.save()
+#             login(request, user)
+#             messages.success(request, 'Account created successfully!')
+#             return redirect('home')
+#     else:
+#         form = SellerSignUpForm()
+#     return render(request, 'registration/signup.html', {'form': form})
 
 
 def listings_view(request):
@@ -395,8 +515,50 @@ def search_suggestions(request):
 
 
 
+
+
+
+
 def privacy_policy(request):
     return render(request, "listings/privacy_policy.html")
 
 def terms_of_service(request):
     return render(request, "listings/terms_of_service.html")
+
+
+# views.py (add these imports and views)
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+from django.db import transaction
+import logging
+
+logger = logging.getLogger(__name__)
+
+@login_required
+def delete_account_request(request):
+    """Show account deletion confirmation page"""
+    return render(request, 'account/delete_account_confirm.html')
+
+@login_required
+@require_http_methods(["POST"])
+def delete_account_confirm(request):
+    """Actually delete the user account"""
+    user = request.user
+    
+    try:
+        EmailService.send_account_deletion_email(user)
+    except Exception as e:
+        logger.error(f"Failed to send deletion email to {user.email}: {e}")
+    
+    logout(request)
+    
+    with transaction.atomic():
+        user.delete()
+    
+    messages.success(request, 'Your account has been successfully deleted.')
+    return redirect('home')  
+
+@login_required
+def account_settings(request):
+    """Account settings page where user can manage their account"""
+    return render(request, 'account/settings.html')

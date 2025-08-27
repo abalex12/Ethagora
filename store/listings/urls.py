@@ -12,8 +12,16 @@ urlpatterns = [
     # Allauth routes
     path('accounts/', include('allauth.urls')),
     path('signup/', views.signup, name='signup'),
+    path('complete-profile/', views.complete_profile, name='complete_profile'),
+
+
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('verify-email/<str:uidb64>/<str:token>/', views.verify_email, name='verify-email'),
+    path('password-reset/', views.password_reset_request, name='password-reset'),
+    path('password-reset-confirm/<str:uidb64>/<str:token>/', views.password_reset_confirm, name='password-reset-confirm'),
+    path('resend-verification/', views.resend_verification, name='resend-verification'),
+
     
     # Seller pages
     path('create-listing/', views.create_listing, name='create_listing'),
@@ -29,5 +37,9 @@ urlpatterns = [
 
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
     path("terms-of-service/", views.terms_of_service, name="terms_of_service"),
+
+    path('account/settings/', views.account_settings, name='account-settings'),
+    path('account/delete/', views.delete_account_request, name='delete-account'),
+    path('account/delete/confirm/', views.delete_account_confirm, name='delete-account-confirm'),
 
 ]

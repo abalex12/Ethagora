@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Complete Your Profile - Ethagora{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+            
+            <!-- Title -->
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">
+                    Complete Your Profile
+                </h2>
+                <p class="text-gray-600 text-sm">
+                    Please provide additional information to access all features
+                </p>
+            </div>
+
+            <!-- Profile Form -->
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Telegram Username -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Telegram Username *
+                    </label>
+                    <input type="text" name="telegram_username" 
+                           value="{{ user.telegram_username }}"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-sm"
+                           placeholder="your_telegram_username" required>
+                    <p class="text-xs text-gray-500 mt-1">Without @ symbol</p>
+                </div>
+
+                <!-- Phone Number -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number *
+                    </label>
+                    <input type="tel" name="phone" 
+                           value="{{ user.phone }}"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-sm"
+                           placeholder="+1234567890" required>
+                </div>
+
+                <!-- Location (Optional) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Location (Optional)
+                    </label>
+                    <input type="text" name="location" 
+                           value="{{ user.location }}"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-sm"
+                           placeholder="City, Country">
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" 
+                    class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold shadow-md 
+                           hover:bg-blue-700 transition transform hover:scale-[1.01]">
+                    Complete Profile
+                </button>
+            </form>
+
+            <!-- Skip Option -->
+            <div class="text-center mt-6">
+                <p class="text-gray-500 text-xs">
+                    You can update this information later in your account settings
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

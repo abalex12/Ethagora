@@ -9,11 +9,13 @@ class User(AbstractUser):
     telegram_username = models.CharField(max_length=100, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     location = models.CharField(max_length=200, blank=True)
+    email_verified = models.BooleanField(default=False)  # Added this field
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
-
+    
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True)

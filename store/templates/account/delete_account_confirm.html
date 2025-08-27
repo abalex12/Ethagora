@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Account{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Delete Account
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                This action cannot be undone. This will permanently delete your account and all associated data.
+            </p>
+        </div>
+
+        <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Warning</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>All your data will be permanently deleted</li>
+                            <li>You will lose access to all services</li>
+                            <li>This action cannot be reversed</li>
+                            <li>You will receive a confirmation email</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex space-x-4">
+            <a href="{% url 'account-settings' %}" class="flex-1 flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                Cancel
+            </a>
+            
+           <!-- Delete form -->
+<form method="post" action="{% url 'delete-account-confirm' %}" id="delete-account-form" class="flex-1">
+    {% csrf_token %}
+    <button type="button" 
+            id="delete-account-btn"
+            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">
+        Delete My Account
+    </button>
+</form>
+
+<!-- Modal (hidden by default) -->
+<div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+    <h2 class="text-lg font-semibold text-gray-900">Are you absolutely sure?</h2>
+    <p class="mt-2 text-sm text-gray-600">This action cannot be undone. Your account will be permanently deleted.</p>
+    
+    <div class="mt-4 flex justify-end space-x-3">
+      <button id="cancel-btn" type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+        Cancel
+      </button>
+      <button id="confirm-btn" type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+        Yes, Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const deleteBtn = document.getElementById('delete-account-btn');
+  const modal = document.getElementById('confirm-modal');
+  const cancelBtn = document.getElementById('cancel-btn');
+  const confirmBtn = document.getElementById('confirm-btn');
+  const form = document.getElementById('delete-account-form');
+
+  // Show modal
+  deleteBtn.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+  });
+
+  // Hide modal
+  cancelBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+
+  // Confirm delete
+  confirmBtn.addEventListener('click', () => {
+    form.submit();
+  });
+</script>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

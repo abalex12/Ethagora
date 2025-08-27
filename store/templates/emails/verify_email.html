@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-8">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-white mb-2">Verify Your Email</h1>
+                <p class="text-green-100 text-lg">One more step to complete your account</p>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="px-6 py-8">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Hello {{ user.username }}!</h2>
+                <p class="text-gray-600 text-lg leading-relaxed">
+                    To complete your account setup and ensure security, please verify your email address by clicking the button below.
+                </p>
+            </div>
+            
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-6 mb-8">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="w-5 h-5 text-blue-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-blue-700">
+                            <strong>Why verify?</strong> Email verification helps us keep your account secure and ensures you receive important updates about your account.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mb-8">
+                <a href="{{ verification_link }}" class="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-10 rounded-lg transition duration-300 shadow-lg transform hover:scale-105">
+                    <svg class="w-5 h-5 inline-block mr-2 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Verify Email Address
+                </a>
+            </div>
+            
+            <div class="border-t pt-6">
+                <p class="text-sm text-gray-500 text-center mb-4">
+                    If the button doesn't work, copy and paste this link into your browser:
+                </p>
+                <div class="bg-gray-100 p-3 rounded border text-sm text-gray-700 break-all">
+                    {{ verification_link }}
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-500">
+                    This verification link will expire in 24 hours for security reasons.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="bg-gray-50 px-6 py-4 text-center border-t">
+            <p class="text-sm text-gray-500">
+                If you didn't create this account, please ignore this email or contact our support team.
+            </p>
+            <p class="text-sm text-gray-400 mt-2">
+                © 2025 Your Company Name. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

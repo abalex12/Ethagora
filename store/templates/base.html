@@ -176,6 +176,9 @@
                                     <p class="text-sm font-medium text-gray-900">{{ user.username }}</p>
                                     <p class="text-xs text-gray-500">{{ user.email }}</p>
                                 </div>
+                                <a href="{% url 'account-settings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-list mr-2"></i>Settings
+                                </a>
                                 <a href="{% url 'my_listings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                     <i class="fas fa-list mr-2"></i>My Listings
                                 </a>
