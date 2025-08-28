@@ -17,9 +17,11 @@ class SellerSignUpForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
+        user.email_verified=False
         user.telegram_username = self.cleaned_data['telegram_username']
         user.phone = self.cleaned_data['phone']
         user.location = self.cleaned_data['location']
+        
         if commit:
             user.save()
         return user
