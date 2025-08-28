@@ -1,27 +1,19 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth import login,get_user_model
+from django.contrib.auth import login, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from .models import Listing, Category, SubCategory, ListingImage
-from .forms import SellerSignUpForm, ListingForm, ListingSearchForm
-from .forms import ListingImageFormSet
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-
-# views.py
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
-from django.http import HttpResponseBadRequest
-from django.contrib.auth.decorators import login_required
+
+from .models import Listing, Category, SubCategory, ListingImage
+from .forms import SellerSignUpForm, ListingForm, ListingSearchForm, ListingImageFormSet
 from .email_services import EmailService
 
 
@@ -145,38 +137,27 @@ def home(request):
     }
     return render(request, 'listings/home.html', context)
 
-
-# def signup(request):
-#     if request.method == 'POST':
-#         form = SellerSignUpForm(request.POST)
-#         if form.is_valid():
-#             user = form.save()
-#             login(request, user)
-#             messages.success(request, 'Account created successfully!')
-#             return redirect('home')
-#     else:
-#         form = SellerSignUpForm()
-#     return render(request, 'registration/signup.html', {'form': form})
-
-
 def listings_view(request):
     form = ListingSearchForm(request.GET)
-    listings = Listing.objects.filter(status='available')
-    
-    # Apply filters
+    listings = Listing.objects.filter(status="available")
+
     if form.is_valid():
-        search = form.cleaned_data.get('search')
-        category = form.cleaned_data.get('category')
-        subcategory = form.cleaned_data.get('subcategory')
-        condition = form.cleaned_data.get('condition')
-        min_price = form.cleaned_data.get('min_price')
-        max_price = form.cleaned_data.get('max_price')
-        sort_by = form.cleaned_data.get('sort_by')
-        
+        search = form.cleaned_data.get("search")
+        category = form.cleaned_data.get("category")
+        subcategory = form.cleaned_data.get("subcategory")
+        condition = form.cleaned_data.get("condition")
+        min_price = form.cleaned_data.get("min_price")
+        max_price = form.cleaned_data.get("max_price")
+        sort_by = form.cleaned_data.get("sort_by")
+
         if search:
             listings = listings.filter(
-                Q(title__icontains=search) | Q(description__icontains=search)
+                Q(title__icontains=search)
+                | Q(description__icontains=search)
+                | Q(category__name__icontains=search)   
+                | Q(subcategory__name__icontains=search) 
             )
+
         if category:
             listings = listings.filter(category=category)
         if subcategory:
@@ -187,29 +168,30 @@ def listings_view(request):
             listings = listings.filter(price__gte=min_price)
         if max_price:
             listings = listings.filter(price__lte=max_price)
-            
+
         # Sorting
-        if sort_by == 'oldest':
-            listings = listings.order_by('created_at')
-        elif sort_by == 'price_low':
-            listings = listings.order_by('price')
-        elif sort_by == 'price_high':
-            listings = listings.order_by('-price')
-        else:  # newest (default)
-            listings = listings.order_by('-created_at')
-    
+        if sort_by == "oldest":
+            listings = listings.order_by("created_at")
+        elif sort_by == "price_low":
+            listings = listings.order_by("price")
+        elif sort_by == "price_high":
+            listings = listings.order_by("-price")
+        else:  
+            listings = listings.order_by("-created_at")
+    else:
+        listings = listings.order_by("-created_at")
+
     # Pagination
     paginator = Paginator(listings, 12)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get("page")
     listings = paginator.get_page(page_number)
-    
-    context = {
-        'listings': listings,
-        'form': form,
-        'categories': Category.objects.all(),
-    }
-    return render(request, 'listings/listings.html', context)
 
+    context = {
+        "listings": listings,
+        "form": form,
+        "categories": Category.objects.all(),
+    }
+    return render(request, "listings/listings.html", context)
 
 def listing_detail(request, pk):
     listing = get_object_or_404(Listing, pk=pk)
