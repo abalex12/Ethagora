@@ -17,6 +17,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=Csv())
 CSRF_TRUSTED_ORIGINS = [
     "https://ethagora.up.railway.app",
+    "https://ethagoras.up.railway.app",
 ]
 
 # Applications
