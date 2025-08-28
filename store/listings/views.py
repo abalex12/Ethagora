@@ -30,7 +30,9 @@ def signup(request):
     if request.method == 'POST':
         form = SellerSignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_active = True  # User can login but email not verified
+            user.save()
             login(request, user)
             messages.success(request, 'Account created successfully!')
             return redirect('home')
