@@ -29,7 +29,7 @@ def signup(request):
             user.save()
             
             # Send welcome and verification emails
-            EmailService.send_welcome_email(user)
+            # EmailService.send_welcome_email(user)
             login(request, user)
             messages.success(request, 'Registration successful! Please complete your Profile.')
             return redirect('home')
@@ -47,7 +47,7 @@ def complete_profile(request):
         user.phone = request.POST.get('phone', '').strip()
         user.location = request.POST.get('location', '').strip()
         user.save()
-        EmailService.send_verification_email(user, request)
+        # EmailService.send_verification_email(user, request)
         messages.success(request, 'Profile completed successfully!')
         return redirect('home') 
     
@@ -80,7 +80,7 @@ def password_reset_request(request):
             email = form.cleaned_data['email']
             try:
                 user = User.objects.get(email=email)
-                EmailService.send_password_reset_email(user, request)
+                # EmailService.send_password_reset_email(user, request)
                 messages.success(request, 'Password reset email sent!')
                 return redirect('login')
             except User.DoesNotExist:
@@ -117,7 +117,7 @@ def password_reset_confirm(request, uidb64, token):
 def resend_verification(request):
     """Resend email verification"""
     if not request.user.email_verified:
-        EmailService.send_verification_email(request.user, request)
+        # EmailService.send_verification_email(request.user, request)
         messages.success(request, 'Verification email sent!')
     else:
         messages.info(request, 'Your email is already verified.')
